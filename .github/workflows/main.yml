@@ -23,15 +23,21 @@ jobs:
           gradle wrapper --gradle-version 8.9 --distribution-type all
           chmod +x ./gradlew
 
-      - name: Generate Dummy Keystore
+      - name: Bypass Signing Configurations completely
         run: |
-          keytool -genkey -v -keystore my-upload-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias -storepass mypassword -keypass mypassword -dname "CN=Wasantha, OU=Dev, O=FriendHub, L=Colombo, S=Western, C=LK"
+          # build.gradle.kts හෝ build.gradle ලේඛන ඇතුළේ ඇති signingConfig පේළි සියල්ලම සම්පූර්ණයෙන්ම ඉවත් කරයි
+          find . -name "build.gradle.kts" -o -name "build.gradle" | while read file; do
+            echo "Processing $file"
+            sed -i 's/signingConfig = signingConfigs.*/\/\/ signingConfig removed/g' "$file"
+            sed -i 's/signingConfig signingConfigs.*/\/\/ signingConfig removed/g' "$file"
+          done
 
-      - name: Build Release App Bundle
-        run: ./gradlew bundleRelease
+      - name: Build Unsigned Release App Bundle
+        run: ./gradlew :app:bundleRelease --no-daemon
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-bundle
-          path: app/build/outputs/bundle/release/*.aab
+          path: "**/build/outputs/bundle/release/*.aab"
+
