@@ -1,0 +1,72 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Mobile Device Frame (Purple) -->
+    <path
+        android:pathData="M16,4 L32,4 C35.3,4 38,6.7 38,10 L38,38 C38,41.3 35.3,44 32,44 L16,44 C12.7,44 10,41.3 10,38 L10,10 C10,6.7 12.7,4 16,4 Z"
+        android:fillColor="#8B5CF6" />
+
+    <!-- Screen Inner Display (Light Glass) -->
+    <path
+        android:pathData="M12,8 L36,8 C37.1,8 38,8.9 38,10 L38,38 C38,39.1 37.1,40 36,40 L12,40 C10.9,40 10,39.1 10,38 L10,10 C10,8.9 10.9,8 12,8 Z"
+        android:fillColor="#F0F9FF" />
+
+    <!-- Chat Bubble (Cyan / Blue Top Left) -->
+    <path
+        android:pathData="M11,12 L28,12 C30.2,12 32,13.8 32,16 L32,22 C32,24.2 30.2,26 28,26 L17,26 L12,29 L13,26 L11,26 C8.8,26 7,24.2 7,22 L7,16 C7,13.8 8.8,12 11,12 Z"
+        android:fillColor="#00D2FF" />
+
+    <!-- White text lines in Chat Bubble -->
+    <path
+        android:pathData="M11,16 L25,16 M11,19 L21,19 M11,22 L27,22"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- Dollar Gold Coin Badge Top Right -->
+    <path
+        android:pathData="M34,16 C38.4,16 42,12.4 42,8 C42,3.6 38.4,0 34,0 C29.6,0 26,3.6 26,8 C26,12.4 29.6,16 34,16 Z"
+        android:fillColor="#FBBF24" />
+    <path
+        android:pathData="M34,14 C37.3,14 40,11.3 40,8 C40,4.7 37.3,2 34,2 C30.7,2 28,4.7 28,8 C28,11.3 30.7,14 34,14 Z"
+        android:fillColor="#F59E0B" />
+
+    <!-- Red Shopping Cart (Center Bottom) -->
+    <path
+        android:pathData="M18,28 L34,28 L32,37 L20,37 Z"
+        android:fillColor="#EF4444" />
+    <!-- Shopping Cart Handle -->
+    <path
+        android:pathData="M34,28 L38,25 L41,25"
+        android:strokeColor="#9CA3AF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- Gold Products inside Cart -->
+    <path
+        android:pathData="M21,24 L25,24 L25,28 L21,28 Z M26,22 L31,22 L31,28 L26,28 Z"
+        android:fillColor="#FCD34D" />
+
+    <!-- Cart Wheels (Grey Circles) -->
+    <path
+        android:pathData="M22,41 C23.1,41 24,40.1 24,39 C24,37.9 23.1,37 22,37 C20.9,37 20,37.9 20,39 C20,40.1 20.9,41 22,41 Z"
+        android:fillColor="#4B5563" />
+    <path
+        android:pathData="M30,41 C31.1,41 32,40.1 32,39 C32,37.9 31.1,37 30,37 C28.9,37 28,37.9 28,39 C28,40.1 28.9,41 30,41 Z"
+        android:fillColor="#4B5563" />
+
+    <!-- Green Checkmark Badge Bottom Left -->
+    <path
+        android:pathData="M11,38 C14.3,38 17,35.3 17,32 C17,28.7 14.3,26 11,26 C7.7,26 5,28.7 5,32 C5,35.3 7.7,38 11,38 Z"
+        android:fillColor="#10B981" />
+    <path
+        android:pathData="M8,32 L10,34 L14,30"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+</vector>

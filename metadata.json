@@ -1,0 +1,6 @@
+{
+  "name": "FriendHub",
+  "description": "A luxury dark-themed social media platform designed for immersive psychological engagement, featuring glassmorphism cards, glowing story borders, and a satisfying interactive feed.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

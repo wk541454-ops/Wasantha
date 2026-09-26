@@ -1,0 +1,33 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Outer Off-White / Light Grey Circular Badge matching the user's uploaded image -->
+    <path
+        android:pathData="M24,4 C13,4 4,13 4,24 C4,35 13,44 24,44 C35,44 44,35 44,24 C44,13 35,4 24,4 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="24"
+                android:startY="4"
+                android:endX="24"
+                android:endY="44"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#F5F6F8" />
+                <item android:offset="1.0" android:color="#DCDEE4" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Subtle Bevel Ring for High Quality 3D Finish -->
+    <path
+        android:pathData="M24,4.5 C13.3,4.5 4.5,13.3 4.5,24 C4.5,24.8 4.6,25.5 4.8,26.2 C6,16 14.1,8 24,8 C33.9,8 42,16 43.2,26.2 C43.4,25.5 43.5,24.8 43.5,24 C43.5,13.3 34.7,4.5 24,4.5 Z"
+        android:fillColor="#50FFFFFF" />
+
+    <!-- Solid Bold Black Curved Share Arrow -->
+    <path
+        android:pathData="M18,31 C18,24 22,20 28,19.5 L28,15 L37,23.5 L28,32 L28,27.5 C23.2,27.5 19.8,29.2 18,33 C18,32.3 18,31.6 18,31 Z"
+        android:fillColor="#111214" />
+</vector>
