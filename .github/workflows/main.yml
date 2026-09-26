@@ -23,6 +23,10 @@ jobs:
           gradle wrapper --gradle-version 8.9 --distribution-type all
           chmod +x ./gradlew
 
+      - name: Generate Dummy Keystore
+        run: |
+          keytool -genkey -v -keystore my-upload-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias -storepass mypassword -keypass mypassword -dname "CN=Wasantha, OU=Dev, O=FriendHub, L=Colombo, S=Western, C=LK"
+
       - name: Build Release App Bundle
         run: ./gradlew bundleRelease
 
