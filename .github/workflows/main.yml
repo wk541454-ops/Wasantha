@@ -23,10 +23,15 @@ jobs:
           gradle wrapper --gradle-version 8.9 --distribution-type all
           chmod +x ./gradlew
 
-      - name: Generate JKS in Root Directory
+      - name: Create Missing Files (JKS & Firebase JSON)
         run: |
-          # ඇප් එකේ build.gradle.kts එකට අනුව rootDir එක ඇතුළටම 'my-upload-key.jks' නිවැරදිව සාදා දෙයි
+          # 1. ඇප් එක ඉල්ලන 'my-upload-key.jks' ලේඛනය සාදයි
           keytool -genkey -v -keystore my-upload-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass mypassword -keypass mypassword -dname "CN=Wasantha, OU=Dev, O=FriendHub, L=Colombo, S=Western, C=LK"
+          
+          # 2. බිල්ඩ් එක නවත්වන අතුරුදන් වූ google-services.json ලේඛනය සාදයි
+          mkdir -p app/src/release
+          echo '{"project_info":{"project_number":"123","project_id":"dummy","storage_bucket":"://appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123:android:123","android_client_info":{"package_name":"com.example.wasantha"}},"api_key":[{"current_key":"dummy"}],"services":{"appinvite_service":{"status":1}}}]}' > app/google-services.json
+          echo '{"project_info":{"project_number":"123","project_id":"dummy","storage_bucket":"://appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123:android:123","android_client_info":{"package_name":"com.example.wasantha"}},"api_key":[{"current_key":"dummy"}],"services":{"appinvite_service":{"status":1}}}]}' > app/src/release/google-services.json
 
       - name: Build Release App Bundle
         run: ./gradlew :app:bundleRelease -PSTORE_PASSWORD="mypassword" -PKEY_PASSWORD="mypassword" --no-daemon
