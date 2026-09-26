@@ -23,8 +23,13 @@ jobs:
           gradle wrapper --gradle-version 8.9 --distribution-type all
           chmod +x ./gradlew
 
-      - name: Assemble Release Bundle Without Signing
-        run: ./gradlew :app:bundleRelease -Pandroid.injected.signing.store.file="" --no-daemon
+      - name: Generate the exact JKS file required by the app
+        run: |
+          # ඇප් එක බිල්ඩ් වෙන්න ඉල්ලන 'my-upload-key.jks' ලේඛනය ක්ලවුඩ් එක ඇතුළේ තත්පරයෙන් සාදා දෙයි
+          keytool -genkey -v -keystore my-upload-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias -storepass mypassword -keypass mypassword -dname "CN=Wasantha, OU=Dev, O=FriendHub, L=Colombo, S=Western, C=LK"
+
+      - name: Build Release App Bundle
+        run: ./gradlew :app:bundleRelease --no-daemon
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
