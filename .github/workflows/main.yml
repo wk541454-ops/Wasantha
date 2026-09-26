@@ -23,7 +23,7 @@ jobs:
           gradle wrapper --gradle-version 8.9 --distribution-type all
           chmod +x ./gradlew
 
-      - name: Build Official AAB Bundle
+      - name: Build Official Unsigned AAB
         run: ./gradlew :app:bundleRelease -Pcom.google.gms.googleservices.GoogleServicesPlugin.skip=true --no-daemon
 
       - name: Upload AAB Artifact
