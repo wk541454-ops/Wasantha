@@ -23,14 +23,8 @@ jobs:
           gradle wrapper --gradle-version 8.9 --distribution-type all
           chmod +x ./gradlew
 
-      - name: Generate JKS file
-        run: |
-          keytool -genkey -v -keystore my-upload-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass mypassword -keypass mypassword -dname "CN=Wasantha, OU=Dev, O=FriendHub, L=Colombo, S=Western, C=LK"
-
-      - name: Build Release App Bundle without Firebase Check
-        run: |
-          # Firebase ප්ලගින් එක ඇතුළේ තියෙන පැකේජ් නාම පරීක්ෂාව සම්පූර්ණයෙන්ම අක්‍රිය කර බිල්ඩ් එක නිම කරයි
-          ./gradlew :app:bundleRelease -PSTORE_PASSWORD="mypassword" -PKEY_PASSWORD="mypassword" -Pcom.google.gms.googleservices.GoogleServicesPlugin.skip=true --no-daemon
+      - name: Build Official AAB Bundle
+        run: ./gradlew :app:bundleRelease -Pcom.google.gms.googleservices.GoogleServicesPlugin.skip=true --no-daemon
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
