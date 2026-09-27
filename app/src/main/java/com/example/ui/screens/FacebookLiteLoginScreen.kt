@@ -155,14 +155,14 @@ fun FacebookLiteLoginScreen(
     // Main Login States - Dual tabs: 0 = Phone Number, 1 = Email Address
     var selectedLoginTab by remember { mutableIntStateOf(1) }
     var phoneInput by remember { mutableStateOf("") }
-    var emailInput by remember { mutableStateOf("wk541454@gmail.com") }
+    var emailInput by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var selectedLanguage by remember { mutableStateOf("සිංහල") }
     var loginErrorMessage by remember { mutableStateOf<String?>(null) }
     var unverifiedEmailWarning by remember { mutableStateOf(false) }
     var authenticatedAccount by remember { mutableStateOf<AuthAccount?>(null) }
-    var activeContactForOtp by remember { mutableStateOf(currentUser.phone) }
+    var activeContactForOtp by remember { mutableStateOf("") }
 
     // Phone Auth & 2FA OTP States
     var phoneVerificationId by remember { mutableStateOf<String?>(null) }
@@ -175,7 +175,7 @@ fun FacebookLiteLoginScreen(
     var trustDevice by remember { mutableStateOf(true) }
 
     // Forgot Password States
-    var forgotSearchQuery by remember { mutableStateOf(currentUser.email) }
+    var forgotSearchQuery by remember { mutableStateOf("") }
     var forgotSelectedMethod by remember { mutableStateOf("EMAIL") }
     var forgotOtpCode by remember { mutableStateOf("") }
     var isSendingResetEmail by remember { mutableStateOf(false) }
@@ -582,7 +582,7 @@ private fun MainLoginView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color(0xFF0F172A))
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -761,7 +761,7 @@ private fun MainLoginView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(24.dp)
-                .background(Color.White)
+                .background(Color(0xFF0F172A))
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val w = size.width
@@ -781,7 +781,7 @@ private fun MainLoginView(
                     close()
                 }
                 drawPath(shadowPath, color = Color(0x332563EB))
-                drawPath(path, color = Color.White)
+                drawPath(path, color = Color(0xFF0F172A))
             }
         }
 
@@ -798,14 +798,14 @@ private fun MainLoginView(
                 Text(
                     text = lang,
                     fontSize = 12.sp,
-                    color = if (selectedLanguage == lang) Color(0xFF2563EB) else Color(0xFF94A3B8),
+                    color = if (selectedLanguage == lang) Color(0xFF38BDF8) else Color(0xFF94A3B8),
                     fontWeight = if (selectedLanguage == lang) FontWeight.Bold else FontWeight.Medium,
                     modifier = Modifier
                         .clickable { onLanguageSelected(lang) }
                         .padding(horizontal = 8.dp)
                 )
                 if (index < languages.size - 1) {
-                    Text("•", color = Color(0xFFCBD5E1), fontSize = 10.sp)
+                    Text("•", color = Color(0xFF475569), fontSize = 10.sp)
                 }
             }
         }
@@ -825,14 +825,14 @@ private fun MainLoginView(
                 },
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E3A8A)
+                color = Color(0xFF93C5FD)
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "FriendHub",
                 fontSize = 34.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color(0xFF2563EB)
+                color = Color(0xFF38BDF8)
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -842,7 +842,7 @@ private fun MainLoginView(
                     else -> "ඔබගේ ගිණුමට පිවිස මිතුරන් සමඟ නිරන්තරයෙන් සම්බන්ධ වන්න."
                 },
                 fontSize = 13.sp,
-                color = Color(0xFF64748B),
+                color = Color(0xFF94A3B8),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -874,17 +874,17 @@ private fun MainLoginView(
                     Text(
                         text = when (selectedLanguage) {
                             "English" -> "Phone or email"
-                            "தமிழ்" -> "தொலைபேසි அல்லது மின்னஞ்சல்"
+                            "தமிழ்" -> "தொலைபேசி அல்லது மின்னஞ்சல்"
                             else -> "දුරකථන අංකය හෝ ඊමේල්"
                         },
-                        color = Color(0xFF94A3B8)
+                        color = Color(0xFF64748B)
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.Person,
                         contentDescription = null,
-                        tint = Color(0xFF2563EB),
+                        tint = Color(0xFF38BDF8),
                         modifier = Modifier.size(22.dp)
                     )
                 },
@@ -895,13 +895,13 @@ private fun MainLoginView(
                     .testTag("login_phone_input"),
                 shape = RoundedCornerShape(27.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF1F5F9),
-                    unfocusedContainerColor = Color(0xFFF1F5F9),
-                    focusedTextColor = Color(0xFF1E293B),
-                    unfocusedTextColor = Color(0xFF1E293B),
-                    focusedBorderColor = Color(0xFF2563EB),
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color(0xFF2563EB)
+                    focusedContainerColor = Color(0xFF1E293B),
+                    unfocusedContainerColor = Color(0xFF1E293B),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedBorderColor = Color(0xFF38BDF8),
+                    unfocusedBorderColor = Color(0xFF334155),
+                    cursorColor = Color(0xFF38BDF8)
                 )
             )
 
@@ -916,14 +916,14 @@ private fun MainLoginView(
                             "தமிழ்" -> "கடவுச்சொல்"
                             else -> "මුරපදය (Password)"
                         },
-                        color = Color(0xFF94A3B8)
+                        color = Color(0xFF64748B)
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.Lock,
                         contentDescription = null,
-                        tint = Color(0xFF2563EB),
+                        tint = Color(0xFF38BDF8),
                         modifier = Modifier.size(22.dp)
                     )
                 },
@@ -932,7 +932,7 @@ private fun MainLoginView(
                         Icon(
                             imageVector = if (isPasswordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
                             contentDescription = null,
-                            tint = Color(0xFF94A3B8),
+                            tint = Color(0xFF64748B),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -946,13 +946,13 @@ private fun MainLoginView(
                     .testTag("login_password_input"),
                 shape = RoundedCornerShape(27.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF1F5F9),
-                    unfocusedContainerColor = Color(0xFFF1F5F9),
-                    focusedTextColor = Color(0xFF1E293B),
-                    unfocusedTextColor = Color(0xFF1E293B),
-                    focusedBorderColor = Color(0xFF2563EB),
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color(0xFF2563EB)
+                    focusedContainerColor = Color(0xFF1E293B),
+                    unfocusedContainerColor = Color(0xFF1E293B),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedBorderColor = Color(0xFF38BDF8),
+                    unfocusedBorderColor = Color(0xFF334155),
+                    cursorColor = Color(0xFF38BDF8)
                 )
             )
 
@@ -960,13 +960,13 @@ private fun MainLoginView(
             if (loginErrorMessage != null) {
                 Card(
                     modifier = Modifier.fillMaxWidth().testTag("login_error_card"),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
-                    border = BorderStroke(1.dp, Color(0xFFFCA5A5)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF451A03)),
+                    border = BorderStroke(1.dp, Color(0xFFF97316)),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
                         text = loginErrorMessage,
-                        color = Color(0xFF991B1B),
+                        color = Color(0xFFFDBA74),
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
                         modifier = Modifier.padding(12.dp)
@@ -977,21 +977,21 @@ private fun MainLoginView(
             if (unverifiedEmailWarning && selectedLoginTab == 1) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
-                    border = BorderStroke(1.dp, Color(0xFFFCD34D)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF451A03)),
+                    border = BorderStroke(1.dp, Color(0xFFF97316)),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
                             text = "Please verify your email address to proceed.",
-                            color = Color(0xFF92400E),
+                            color = Color(0xFFFDBA74),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Resend Verification Email",
-                            color = Color(0xFF2563EB),
+                            color = Color(0xFF38BDF8),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable { onResendEmailVerification() }
@@ -1016,7 +1016,7 @@ private fun MainLoginView(
                     .fillMaxWidth()
                     .height(52.dp)
                     .testTag("login_submit_button"),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
                 shape = RoundedCornerShape(26.dp)
             ) {
                 if (isOtpSending) {
@@ -1058,7 +1058,7 @@ private fun MainLoginView(
                             "தமிழ்" -> "கடவுச்சොல் மறந்துவிட்டதா?"
                             else -> "මුරපදය අමතකද? (Forgot Password)"
                         },
-                        color = Color(0xFF1D4ED8),
+                        color = Color(0xFF38BDF8),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
@@ -1070,21 +1070,21 @@ private fun MainLoginView(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0), thickness = 1.dp)
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFF334155), thickness = 1.dp)
                 Text(
                     text = "OR",
-                    color = Color(0xFF94A3B8),
+                    color = Color(0xFF64748B),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0), thickness = 1.dp)
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFF334155), thickness = 1.dp)
             }
 
             // 9. "Create Account" Outlined Capsule Button
             OutlinedButton(
                 onClick = onCreateAccount,
-                border = BorderStroke(1.5.dp, Color(0xFF2563EB)),
+                border = BorderStroke(1.5.dp, Color(0xFF38BDF8)),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
@@ -1099,7 +1099,7 @@ private fun MainLoginView(
                     Icon(
                         imageVector = Icons.Outlined.PersonAdd,
                         contentDescription = null,
-                        tint = Color(0xFF2563EB),
+                        tint = Color(0xFF38BDF8),
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -1109,7 +1109,7 @@ private fun MainLoginView(
                             "தமிழ்" -> "புதிய கணக்கு"
                             else -> "නව ගිණුමක් සාදන්න"
                         },
-                        color = Color(0xFF2563EB),
+                        color = Color(0xFF38BDF8),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -1124,7 +1124,7 @@ private fun MainLoginView(
                 append("By continuing, you agree to our ")
                 
                 pushStringAnnotation(tag = "TERMS", annotation = "terms")
-                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, color = Color(0xFF2563EB), fontWeight = FontWeight.SemiBold)) {
+                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, color = Color(0xFF38BDF8), fontWeight = FontWeight.SemiBold)) {
                     append("Terms of Service")
                 }
                 pop()
@@ -1132,7 +1132,7 @@ private fun MainLoginView(
                 append(" and ")
                 
                 pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
-                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, color = Color(0xFF2563EB), fontWeight = FontWeight.SemiBold)) {
+                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, color = Color(0xFF38BDF8), fontWeight = FontWeight.SemiBold)) {
                     append("Privacy Policy")
                 }
                 pop()
@@ -1142,7 +1142,7 @@ private fun MainLoginView(
                 text = annotatedText,
                 style = TextStyle(
                     fontSize = 11.sp,
-                    color = Color(0xFF64748B),
+                    color = Color(0xFF94A3B8),
                     textAlign = TextAlign.Center
                 ),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -1820,7 +1820,7 @@ private fun ForgotPasswordChooseMethodView(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(text = "SMS මඟින් කේතය එවන්න", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text(text = currentUser.phone, fontSize = 12.sp, color = Color(0xFFB0B3B8))
+                    Text(text = currentUser.phone.ifBlank { "ලියාපදිංචි දුරකථන අංකයට" }, fontSize = 12.sp, color = Color(0xFFB0B3B8))
                 }
             }
 
@@ -1844,7 +1844,7 @@ private fun ForgotPasswordChooseMethodView(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(text = "විද්‍යුත් තැපෑලෙන් (Email) කේතය එවන්න", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text(text = currentUser.email, fontSize = 12.sp, color = Color(0xFFB0B3B8))
+                    Text(text = currentUser.email.ifBlank { "ලියාපදිංචි විද්‍යුත් තැපෑලට" }, fontSize = 12.sp, color = Color(0xFFB0B3B8))
                 }
             }
 

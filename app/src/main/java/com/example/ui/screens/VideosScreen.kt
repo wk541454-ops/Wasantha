@@ -48,6 +48,16 @@ fun VideosScreen(
     val reels by viewModel.reels.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val systemVideoPicker = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.createReel(uri.toString(), "Reel by ${currentUser.name}")
+            android.widget.Toast.makeText(context, "වීඩියෝව/රීල් එක සාර්ථකව එක් කරන ලදී! 🎥", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // Bottom Sheets states
     var selectedReelForShare by remember { mutableStateOf<Reel?>(null) }
     var selectedReelForComments by remember { mutableStateOf<Reel?>(null) }
@@ -93,7 +103,13 @@ fun VideosScreen(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = { viewModel.setCreatePostOpen(true) },
+                    onClick = {
+                        systemVideoPicker.launch(
+                            androidx.activity.result.PickVisualMediaRequest(
+                                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.VideoOnly
+                            )
+                        )
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFA855F7),
                         contentColor = Color.White
@@ -157,7 +173,13 @@ fun VideosScreen(
                         .size(36.dp)
                         .clip(CircleShape)
                         .background(Color.Black.copy(alpha = 0.5f))
-                        .clickable { viewModel.setCreatePostOpen(true) },
+                        .clickable {
+                            systemVideoPicker.launch(
+                                androidx.activity.result.PickVisualMediaRequest(
+                                    androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.VideoOnly
+                                )
+                            )
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

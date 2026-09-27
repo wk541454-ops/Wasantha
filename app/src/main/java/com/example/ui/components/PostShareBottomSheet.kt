@@ -761,7 +761,7 @@ fun PostShareBottomSheet(
             },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text("ගිණුම: wk541454@gmail.com ✓", color = Color(0xFF4CAF50), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Text("ගිණුම: ${currentUser.email.ifBlank { "සක්‍රියයි" }} ✓", color = Color(0xFF4CAF50), fontSize = 13.sp, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text("ස්ථානය: My Drive / FriendHub Shared", color = Color(0xFFB0B3B8), fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(12.dp))

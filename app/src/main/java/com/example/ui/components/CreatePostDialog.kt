@@ -339,22 +339,27 @@ fun CreatePostDialog(
                     onOpenAiMagicStudio = { showAiMagicStudioSheet = true },
                     onBack = { currentScreen = 0 },
                     onPublish = {
-                        var finalContent = postText.trim()
-                        if (selectedFeeling != null) {
-                            finalContent = if (finalContent.isEmpty()) "Feeling $selectedFeeling" else "$finalContent — feeling $selectedFeeling"
-                        }
-                        if (taggedFriends.isNotEmpty()) {
-                            finalContent = if (finalContent.isEmpty()) "With ${taggedFriends.joinToString(", ")}" else "$finalContent with ${taggedFriends.joinToString(", ")}"
-                        }
-                        if (selectedLocation != null) {
-                            finalContent = if (finalContent.isEmpty()) "At $selectedLocation" else "$finalContent at $selectedLocation"
-                        }
-                        if (selectedMusic != null) {
-                            finalContent = if (finalContent.isEmpty()) "🎵 $selectedMusic" else "$finalContent \n🎵 $selectedMusic"
-                        }
+                        val networkMonitor = com.example.util.NetworkMonitor(context)
+                        if (!networkMonitor.isConnected()) {
+                            Toast.makeText(context, "අන්තර්ජාල සබඳතාව නොමැත. කරුණාකර Network සක්‍රිය කර නැවත උත්සාහ කරන්න. 📡", Toast.LENGTH_LONG).show()
+                        } else {
+                            var finalContent = postText.trim()
+                            if (selectedFeeling != null) {
+                                finalContent = if (finalContent.isEmpty()) "Feeling $selectedFeeling" else "$finalContent — feeling $selectedFeeling"
+                            }
+                            if (taggedFriends.isNotEmpty()) {
+                                finalContent = if (finalContent.isEmpty()) "With ${taggedFriends.joinToString(", ")}" else "$finalContent with ${taggedFriends.joinToString(", ")}"
+                            }
+                            if (selectedLocation != null) {
+                                finalContent = if (finalContent.isEmpty()) "At $selectedLocation" else "$finalContent at $selectedLocation"
+                            }
+                            if (selectedMusic != null) {
+                                finalContent = if (finalContent.isEmpty()) "🎵 $selectedMusic" else "$finalContent \n🎵 $selectedMusic"
+                            }
 
-                        onSubmitPost(finalContent, selectedMediaUrl, selectedMediaType)
-                        Toast.makeText(context, "පෝස්ටුව සාර්ථකව පළ කරන ලදී! 🚀", Toast.LENGTH_SHORT).show()
+                            onSubmitPost(finalContent, selectedMediaUrl, selectedMediaType)
+                            Toast.makeText(context, "පෝස්ටුව සාර්ථකව පළ කරන ලදී! 🚀", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 )
             }
@@ -672,6 +677,46 @@ private fun NewPostGalleryPickerScreen(
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = "දුරකථන ඡායාරූප",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+
+            // 3. Open Device Videos (Native Android Picker)
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(130.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFF242526))
+                        .border(1.dp, Color(0xFF3A3B3C), RoundedCornerShape(14.dp))
+                        .clickable { onOpenDeviceVideoPicker() }
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFF43F5E).copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Videocam,
+                                contentDescription = "Device Videos",
+                                tint = Color(0xFFF43F5E),
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "දුරකථන වීඩියෝ",
                             color = Color.White,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,

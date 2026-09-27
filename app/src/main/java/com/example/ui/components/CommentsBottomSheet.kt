@@ -69,12 +69,19 @@ fun CommentsBottomSheet(
 ) {
     var commentText by remember { mutableStateOf("") }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
 
     val sheetBg = if (isLightMode) Color.White else OledSurface
     val primaryText = if (isLightMode) Color(0xFF050505) else Color.White
     val secondaryText = if (isLightMode) Color(0xFF65676B) else Color(0xFFB0B3B8)
     val inputBg = if (isLightMode) Color(0xFFF0F2F5) else OledSurfaceVariant
     val inputBorder = if (isLightMode) Color(0xFFE4E6EB) else OledCardBorder
+
+    androidx.compose.runtime.LaunchedEffect(post.comments.size) {
+        if (post.comments.isNotEmpty()) {
+            listState.animateScrollToItem(post.comments.size - 1)
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -142,11 +149,18 @@ fun CommentsBottomSheet(
                 }
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    items(post.comments) { comment ->
-                        CommentItemRow(comment = comment, isLightMode = isLightMode)
+                    items(post.comments, key = { it.id }) { comment ->
+                        CommentItemRow(
+                            comment = comment,
+                            isLightMode = isLightMode,
+                            onReplyClick = { userName ->
+                                commentText = "@$userName "
+                            }
+                        )
                     }
                 }
             }
@@ -224,7 +238,11 @@ fun CommentsBottomSheet(
 }
 
 @Composable
-fun CommentItemRow(comment: Comment, isLightMode: Boolean = true) {
+fun CommentItemRow(
+    comment: Comment,
+    isLightMode: Boolean = true,
+    onReplyClick: (String) -> Unit = {}
+) {
     var isLiked by remember { mutableStateOf(false) }
     var likesCount by remember { mutableStateOf(comment.likes) }
 
@@ -301,7 +319,7 @@ fun CommentItemRow(comment: Comment, isLightMode: Boolean = true) {
                         fontWeight = FontWeight.Bold
                     ),
                     color = subTextColor,
-                    modifier = Modifier.clickable { }
+                    modifier = Modifier.clickable { onReplyClick(comment.userName) }
                 )
                 if (likesCount > 0) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

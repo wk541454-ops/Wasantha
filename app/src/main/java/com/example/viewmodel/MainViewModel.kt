@@ -116,7 +116,7 @@ class MainViewModel(
     private val _isCheckingConnection = MutableStateFlow(false)
     val isCheckingConnection: StateFlow<Boolean> = _isCheckingConnection.asStateFlow()
 
-    private val _isOfflineBrowsingMode = MutableStateFlow(true)
+    private val _isOfflineBrowsingMode = MutableStateFlow(false)
     val isOfflineBrowsingMode: StateFlow<Boolean> = _isOfflineBrowsingMode.asStateFlow()
 
     private val _selectedFont = MutableStateFlow("Default") // Default, Poppins, Bubblegum, Playfair, Montserrat
@@ -195,6 +195,28 @@ class MainViewModel(
                 }
             } catch (t: Throwable) {
                 android.util.Log.w("MainViewModel", "User collector error: ${t.message}")
+            }
+        }
+        viewModelScope.launch {
+            try {
+                repository.posts.collect { currentPosts ->
+                    val activeCommentPost = _activePostForComments.value
+                    if (activeCommentPost != null) {
+                        val updated = currentPosts.find { it.id == activeCommentPost.id }
+                        if (updated != null) {
+                            _activePostForComments.value = updated
+                        }
+                    }
+                    val activeDetailPost = _selectedPostForDetail.value
+                    if (activeDetailPost != null) {
+                        val updated = currentPosts.find { it.id == activeDetailPost.id }
+                        if (updated != null) {
+                            _selectedPostForDetail.value = updated
+                        }
+                    }
+                }
+            } catch (t: Throwable) {
+                android.util.Log.w("MainViewModel", "Posts collector error: ${t.message}")
             }
         }
     }
