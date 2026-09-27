@@ -2331,52 +2331,186 @@ fun AppSettingsModal(
         }
     }
 
-    // 28. පද්ධති පරිපාලක සහ යෙදුම් හිමිකරු (Admin & Owner Details - Secure Read-Only)
+    // 28. පද්ධති පරිපාලක සහ යෙදුම් හිමිකරු (Admin & Owner Details - Secure Read-Only with Interactive Owner Dashboard)
     if (activeDialogId == "admin_info") {
-        SubOptionDialogContainer(title = "👑 පරිපාලක සහ යෙදුම් හිමිකරු", onDismiss = { activeDialogId = null }) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
-                border = BorderStroke(1.dp, Color(0xFF0284C7).copy(alpha = 0.6f)),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
+        val isAdmin = currentUser?.email?.trim()?.lowercase() == "wk541454@gmail.com"
+        SubOptionDialogContainer(
+            title = if (isAdmin) "👑 පරිපාලක පාලන පැනලය (Admin Panel)" else "👑 පරිපාලක සහ යෙදුම් හිමිකරු",
+            onDismiss = { activeDialogId = null }
+        ) {
+            if (isAdmin) {
+                // Interactive Owner Admin Console!
+                var globalBroadcastText by remember { mutableStateOf("") }
+                var verifyUserEmail by remember { mutableStateOf("") }
+                var contentModerationInput by remember { mutableStateOf("") }
+
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                ) {
+                    Surface(
+                        color = Color(0xFF0F172A),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, Color(0xFF38BDF8))
                     ) {
-                        Text(
-                            text = "🔒 ආරක්ෂිත පද්ධති වාර්තාව",
-                            color = Color(0xFF38BDF8),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Surface(
-                            color = Color(0xFF0284C7),
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Text(
-                                text = "READ-ONLY",
-                                color = Color.White,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                text = "SYSTEM CONTROL CENTER ACTIVE",
+                                color = Color(0xFF38BDF8),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Logged in as System Owner: wk541454@gmail.com. You have complete root-level control over public content & user verifications.",
+                                color = Color(0xFF94A3B8),
+                                fontSize = 11.sp,
+                                lineHeight = 15.sp
                             )
                         }
                     }
 
-                    HorizontalDivider(color = Color(0xFF334155), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+                    // Section 1: Global System Notice Broadcast
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Text("📢 Global Announcement Broadcast", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(
+                                value = globalBroadcastText,
+                                onValueChange = { globalBroadcastText = it },
+                                placeholder = { Text("Write app-wide alert...", color = Color(0xFF64748B), fontSize = 12.sp) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color(0xFF38BDF8),
+                                    unfocusedBorderColor = Color(0xFF475569)
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = {
+                                    if (globalBroadcastText.isNotBlank()) {
+                                        viewModel.createGlobalAnnouncement(globalBroadcastText.trim())
+                                        Toast.makeText(context, "Announcement broadcasted globally to all feeds! 📢", Toast.LENGTH_SHORT).show()
+                                        globalBroadcastText = ""
+                                    } else {
+                                        Toast.makeText(context, "Announcement text is empty", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0284C7)),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Broadcast Alert", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
 
-                    Text(text = "වේදිකාව (Platform): FriendHub Official Social Network", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "සංස්කරණය (Version): v1.0.0 (Production Release)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "පාරිභෝගික සහාය (Support): support@friendhub.app", color = Color(0xFF38BDF8), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "ආරක්ෂක ක්‍රමය (Security): Firebase Cloud Firestore & AES-256", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    // Section 2: Account VIP Verification Badge Issuer
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Text("🏅 Issue Gold Verification Badge", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(
+                                value = verifyUserEmail,
+                                onValueChange = { verifyUserEmail = it },
+                                placeholder = { Text("Enter user's email or username...", color = Color(0xFF64748B), fontSize = 12.sp) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color(0xFF38BDF8),
+                                    unfocusedBorderColor = Color(0xFF475569)
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                Button(
+                                    onClick = {
+                                        if (verifyUserEmail.isNotBlank()) {
+                                            viewModel.setUserVerificationStatus(verifyUserEmail.trim(), true)
+                                            Toast.makeText(context, "${verifyUserEmail.trim()} verified as VIP! 🏅", Toast.LENGTH_SHORT).show()
+                                            verifyUserEmail = ""
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Verify VIP", color = Color.White, fontSize = 12.sp)
+                                }
+                                Button(
+                                    onClick = {
+                                        if (verifyUserEmail.isNotBlank()) {
+                                            viewModel.setUserVerificationStatus(verifyUserEmail.trim(), false)
+                                            Toast.makeText(context, "${verifyUserEmail.trim()} unverified.", Toast.LENGTH_SHORT).show()
+                                            verifyUserEmail = ""
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Revoke", color = Color.White, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                    }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    // Section 3: Safety Moderation Center
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Text("🛡️ Public Content Moderator", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("Delete public abusive posts by ID.", color = Color(0xFF94A3B8), fontSize = 10.sp)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            OutlinedTextField(
+                                value = contentModerationInput,
+                                onValueChange = { contentModerationInput = it },
+                                placeholder = { Text("Enter public Post ID...", color = Color(0xFF64748B), fontSize = 12.sp) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedBorderColor = Color(0xFF38BDF8),
+                                    unfocusedBorderColor = Color(0xFF475569)
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = {
+                                    if (contentModerationInput.isNotBlank()) {
+                                        viewModel.deletePostByAdmin(contentModerationInput.trim())
+                                        Toast.makeText(context, "Post ${contentModerationInput.trim()} deleted by Admin! 🛡️", Toast.LENGTH_SHORT).show()
+                                        contentModerationInput = ""
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Delete Public Post", color = Color.White, fontSize = 12.sp)
+                            }
+                        }
+                    }
+
+                    // Section 4: Privacy Protection Policy Banner
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -2385,11 +2519,73 @@ fun AppSettingsModal(
                             .padding(10.dp)
                     ) {
                         Text(
-                            text = "🛡️ පද්ධති ආරක්ෂණ සටහන:\nමෙම යෙදුමේ පරිපාලක සහ හිමිකරු දත්ත පද්ධති මට්ටමින් රක්ෂණය කර ඇත. කිසිදු පරිශීලකයෙකුට හෝ වෙනත් අයෙකුට මෙහි ඇති තොරතුරු වෙනස් කිරීමට හෝ සංස්කරණය කිරීමට අවසර නැත.",
-                            color = Color(0xFF94A3B8),
+                            text = "🔒 USER PRIVACY PROTOCOL ENFORCED:\nDirect Chats, Private Messages, and users' private account data are fully End-to-End Encrypted (E2EE) and locked from Administrative View to protect user privacy.",
+                            color = Color(0xFF22C55E),
                             fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
                             lineHeight = 16.sp
                         )
+                    }
+                }
+            } else {
+                // Read-Only details for standard users
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                    border = BorderStroke(1.dp, Color(0xFF0284C7).copy(alpha = 0.6f)),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "🔒 ආරක්ෂිත පද්ධති වාර්තාව",
+                                color = Color(0xFF38BDF8),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Surface(
+                                color = Color(0xFF0284C7),
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    text = "READ-ONLY",
+                                    color = Color.White,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(color = Color(0xFF334155), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+
+                        Text(text = "වේදිකාව (Platform): FriendHub Official Social Network", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(text = "සංස්කරණය (Version): v1.0.0 (Production Release)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(text = "පාරිභෝගික සහාය (Support): support@friendhub.app", color = Color(0xFF38BDF8), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(text = "ආරක්ෂක ක්‍රමය (Security): Firebase Cloud Firestore & AES-256", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF0F172A))
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                text = "🛡️ පද්ධති ආරක්ෂණ සටහන:\nමෙම යෙදුමේ පරිපාලක සහ හිමිකරු දත්ත පද්ධති මට්ටමින් රක්ෂණය කර ඇත. කිසිදු පරිශීලකයෙකුට හෝ වෙනත් අයෙකුට මෙහි ඇති තොරතුරු වෙනස් කිරීමට හෝ සංස්කරණය කිරීමට අවසර නැත.",
+                                color = Color(0xFF94A3B8),
+                                fontSize = 11.sp,
+                                lineHeight = 16.sp
+                            )
+                        }
                     }
                 }
             }

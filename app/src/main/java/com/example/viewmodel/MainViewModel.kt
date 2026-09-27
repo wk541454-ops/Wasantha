@@ -218,6 +218,70 @@ class MainViewModel(
         viewUserProfile(user)
     }
 
+    fun createGlobalAnnouncement(text: String) {
+        viewModelScope.launch {
+            try {
+                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                val announcementPost = mapOf(
+                    "id" to "announcement_${System.currentTimeMillis()}",
+                    "userId" to "admin_announcement",
+                    "userName" to "FriendHub System Alert 📢",
+                    "userAvatar" to "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80",
+                    "userVerified" to true,
+                    "timestamp" to "Just now",
+                    "content" to text,
+                    "likeCount" to 0,
+                    "commentCount" to 0,
+                    "shareCount" to 0,
+                    "isLikedByMe" to false,
+                    "comments" to emptyList<Any>()
+                )
+                db.collection("posts")
+                    .document(announcementPost["id"] as String)
+                    .set(announcementPost)
+            } catch (t: Throwable) {
+                android.util.Log.w("MainViewModel", "Failed to broadcast announcement: ${t.message}")
+            }
+        }
+    }
+
+    fun setUserVerificationStatus(emailOrUsername: String, isVerified: Boolean) {
+        viewModelScope.launch {
+            try {
+                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                db.collection("users")
+                    .whereEqualTo("email", emailOrUsername.trim())
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        for (doc in querySnapshot.documents) {
+                            doc.reference.update("isVerified", isVerified)
+                        }
+                    }
+                db.collection("users")
+                    .whereEqualTo("username", emailOrUsername.trim())
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        for (doc in querySnapshot.documents) {
+                            doc.reference.update("isVerified", isVerified)
+                        }
+                    }
+            } catch (t: Throwable) {
+                android.util.Log.w("MainViewModel", "Failed to verify user: ${t.message}")
+            }
+        }
+    }
+
+    fun deletePostByAdmin(postId: String) {
+        viewModelScope.launch {
+            try {
+                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                db.collection("posts").document(postId).delete()
+            } catch (t: Throwable) {
+                android.util.Log.w("MainViewModel", "Failed to delete post by Admin: ${t.message}")
+            }
+        }
+    }
+
     fun updateUserProfile(user: User) {
         repository.updateUserProfile(user)
     }
@@ -929,9 +993,66 @@ class MainViewModel(
         _activePostForComments.value = null
     }
 
+    private fun createInAppSafetyNotification(text: String) {
+        val user = repository.currentUser.value ?: return
+        val notification = com.example.model.NotificationItem(
+            id = "safety_alert_${System.currentTimeMillis()}",
+            type = com.example.model.NotificationType.FRIEND_REQUEST, // General notification category
+            senderName = "FriendHub Safety Shield 🛡️",
+            senderAvatar = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80",
+            message = text,
+            timestamp = "Just now",
+            isRead = false,
+            targetId = user.id
+        )
+        repository.addNotification(notification)
+    }
+
+    private fun inspectAndProcessUserSafety(text: String): Boolean {
+        val user = repository.currentUser.value ?: return false
+        val moderation = com.example.util.FriendHubSecurityController.inspectAndModerateContent(text)
+        if (moderation.isFlagged) {
+            val updatedViolationCount = user.violationCount + 1
+            val shouldBan = updatedViolationCount >= 3
+            val updatedUser = user.copy(
+                violationCount = updatedViolationCount,
+                isBanned = shouldBan
+            )
+            repository.updateUserProfile(updatedUser)
+            
+            // Persist the updated violation count & ban status to Firestore so they are actually saved!
+            viewModelScope.launch {
+                try {
+                    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    db.collection("users").document(user.id).update(
+                        "violationCount", updatedViolationCount,
+                        "isBanned", shouldBan
+                    )
+                } catch (t: Throwable) {
+                    android.util.Log.w("MainViewModel", "Failed to persist user ban status to Firestore: ${t.message}")
+                }
+            }
+
+            // Trigger an in-app system warning notification
+            val warningMsg = if (shouldBan) {
+                "🚨 YOUR ACCOUNT HAS BEEN BANNED permanently for repeatedly posting inappropriate content violating Community Guidelines!"
+            } else {
+                "⚠️ SYSTEM WARNING ($updatedViolationCount/3): Your content was automatically blocked because it violates community standards. Repeat offenses will result in an immediate permanent ban!"
+            }
+            createInAppSafetyNotification(warningMsg)
+
+            return true // Flagged & processed
+        }
+        return false // Safe
+    }
+
     fun addCommentToActivePost(content: String) {
         val post = _activePostForComments.value ?: return
         if (content.isBlank()) return
+
+        // Safety moderation check
+        if (inspectAndProcessUserSafety(content)) return
+
         repository.addComment(post.id, content)
         // refresh active post ref
         val updatedPost = repository.posts.value.find { it.id == post.id }
@@ -940,6 +1061,10 @@ class MainViewModel(
 
     fun addCommentToPostInDetail(postId: String, content: String) {
         if (content.isBlank()) return
+
+        // Safety moderation check
+        if (inspectAndProcessUserSafety(content)) return
+
         repository.addComment(postId, content)
         // refresh both screen refs
         val updatedPost = repository.posts.value.find { it.id == postId }
@@ -988,16 +1113,33 @@ class MainViewModel(
 
     fun createPost(content: String, mediaUrl: String?, mediaType: MediaType, audience: String = "Public") {
         if (content.isBlank() && mediaUrl == null) return
+
+        // Safety moderation check
+        if (inspectAndProcessUserSafety(content)) {
+            _isCreatePostOpen.value = false
+            return
+        }
+
         repository.addPost(content, mediaUrl, mediaType, audience)
         _isCreatePostOpen.value = false
     }
 
     fun createReel(videoUrl: String, caption: String) {
         if (videoUrl.isBlank()) return
+
+        // Safety moderation check
+        if (inspectAndProcessUserSafety(caption)) return
+
         repository.addReel(videoUrl, caption)
     }
 
     fun createStory(mediaUrl: String?, caption: String, backgroundColor: String? = null) {
+        // Safety moderation check
+        if (inspectAndProcessUserSafety(caption)) {
+            _isCreateStoryOpen.value = false
+            return
+        }
+
         repository.addStory(mediaUrl, caption, backgroundColor)
         _isCreateStoryOpen.value = false
     }

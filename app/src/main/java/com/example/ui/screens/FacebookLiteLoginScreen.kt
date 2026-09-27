@@ -153,9 +153,9 @@ fun FacebookLiteLoginScreen(
     }
 
     // Main Login States - Dual tabs: 0 = Phone Number, 1 = Email Address
-    var selectedLoginTab by remember { mutableIntStateOf(0) }
+    var selectedLoginTab by remember { mutableIntStateOf(1) }
     var phoneInput by remember { mutableStateOf("") }
-    var emailInput by remember { mutableStateOf("") }
+    var emailInput by remember { mutableStateOf("wk541454@gmail.com") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var selectedLanguage by remember { mutableStateOf("සිංහල") }

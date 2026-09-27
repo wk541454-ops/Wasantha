@@ -74,7 +74,9 @@ data class User(
     val followsTodayCount: Int = 12,
     val lastFollowActionTimestamp: Long = System.currentTimeMillis(),
     val isBlockedByMe: Boolean = false,
-    val blockedUserIds: List<String> = emptyList()
+    val blockedUserIds: List<String> = emptyList(),
+    val isBanned: Boolean = false,
+    val violationCount: Int = 0
 )
 
 enum class MediaType {

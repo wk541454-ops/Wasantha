@@ -568,7 +568,29 @@ fun CreateAccountStepFlow(
                                 birthDay = birthDay,
                                 onDayChange = { birthDay = it; errorMessage = null },
                                 errorMessage = errorMessage,
-                                onNext = { goToNextStep() }
+                                onNext = {
+                                    if (birthDay !in 1..31) {
+                                        errorMessage = when (selectedLanguage) {
+                                            "English" -> "Please enter a valid day (1-31)"
+                                            "தமிழ்" -> "தயவுசெய்து சரியான நாளை உள்ளிடவும் (1-31)"
+                                            else -> "කරුණාකර නිවැරදි දිනයක් ඇතුළත් කරන්න (1-31)"
+                                        }
+                                    } else if (birthMonth !in 1..12) {
+                                        errorMessage = when (selectedLanguage) {
+                                            "English" -> "Please enter a valid month (1-12)"
+                                            "தமிழ்" -> "தயவுசெய்து சரியான மாதத்தை உள்ளிடவும் (1-12)"
+                                            else -> "කරුණාකර නිවැරදි මාසයක් ඇතුළත් කරන්න (1-12)"
+                                        }
+                                    } else if (birthYear !in 1920..2026) {
+                                        errorMessage = when (selectedLanguage) {
+                                            "English" -> "Please enter a valid year"
+                                            "தமிழ்" -> "தயவுசெய்து சரியான ஆண்டை உள்ளிடவும்"
+                                            else -> "කරුණාකර නිවැරදි වර්ෂයක් ඇතුළත් කරන්න"
+                                        }
+                                    } else {
+                                        goToNextStep()
+                                    }
+                                }
                             )
                         }
 
@@ -944,10 +966,14 @@ private fun BirthdayStepView(
     ) {
         // Day
         OutlinedTextField(
-            value = birthDay.toString(),
+            value = if (birthDay == 0) "" else birthDay.toString(),
             onValueChange = { str ->
-                val v = str.filter { it.isDigit() }.toIntOrNull()
-                if (v != null && v in 1..31) onDayChange(v)
+                if (str.isEmpty()) {
+                    onDayChange(0)
+                } else {
+                    val v = str.filter { it.isDigit() }.toIntOrNull()
+                    if (v != null) onDayChange(v)
+                }
             },
             label = { Text("Day (දිනය)", fontSize = 11.sp) },
             singleLine = true,
@@ -966,10 +992,14 @@ private fun BirthdayStepView(
 
         // Month
         OutlinedTextField(
-            value = birthMonth.toString(),
+            value = if (birthMonth == 0) "" else birthMonth.toString(),
             onValueChange = { str ->
-                val v = str.filter { it.isDigit() }.toIntOrNull()
-                if (v != null && v in 1..12) onMonthChange(v)
+                if (str.isEmpty()) {
+                    onMonthChange(0)
+                } else {
+                    val v = str.filter { it.isDigit() }.toIntOrNull()
+                    if (v != null) onMonthChange(v)
+                }
             },
             label = { Text("Month (මාසය)", fontSize = 11.sp) },
             singleLine = true,
@@ -988,10 +1018,14 @@ private fun BirthdayStepView(
 
         // Year
         OutlinedTextField(
-            value = birthYear.toString(),
+            value = if (birthYear == 0) "" else birthYear.toString(),
             onValueChange = { str ->
-                val v = str.filter { it.isDigit() }.toIntOrNull()
-                if (v != null && v in 1920..2026) onYearChange(v)
+                if (str.isEmpty()) {
+                    onYearChange(0)
+                } else {
+                    val v = str.filter { it.isDigit() }.toIntOrNull()
+                    if (v != null) onYearChange(v)
+                }
             },
             label = { Text("Year (වසර)", fontSize = 11.sp) },
             singleLine = true,

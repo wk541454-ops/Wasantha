@@ -26,6 +26,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.AppSettingsModal
 import com.example.ui.components.FloatingDancingEmojisOverlay
@@ -65,10 +80,24 @@ class MainActivity : ComponentActivity() {
 
         try {
             if (com.google.firebase.FirebaseApp.getApps(this).isEmpty()) {
-                com.google.firebase.FirebaseApp.initializeApp(this)
+                try {
+                    com.google.firebase.FirebaseApp.initializeApp(this)
+                    android.util.Log.d("MainActivity", "FirebaseApp initialized via google-services.json automatically.")
+                } catch (t: Throwable) {
+                    android.util.Log.w("MainActivity", "Automatic FirebaseApp init failed: ${t.message}. Falling back to explicit manual options.")
+                    val options = com.google.firebase.FirebaseOptions.Builder()
+                        .setApiKey("AIzaSyDlxNwbI-s_yOLC4-Wo1UZh7-7e_RfBVQQ")
+                        .setApplicationId("1:797030310064:android:b132b9260198429b975b75")
+                        .setDatabaseUrl("https://friendhub-29611-default-rtdb.firebaseio.com")
+                        .setProjectId("friendhub-29611")
+                        .setStorageBucket("friendhub-29611.firebasestorage.app")
+                        .build()
+                    com.google.firebase.FirebaseApp.initializeApp(this, options)
+                    android.util.Log.d("MainActivity", "FirebaseApp initialized with explicit manual options successfully.")
+                }
             }
         } catch (t: Throwable) {
-            android.util.Log.w("MainActivity", "FirebaseApp init fallback: ${t.message}")
+            android.util.Log.e("MainActivity", "All FirebaseApp initialization methods failed: ${t.message}", t)
         }
 
         try {
@@ -197,42 +226,48 @@ fun FriendHubApp(
             )
         }
     } else {
-        androidx.activity.compose.BackHandler(enabled = selectedTab != 0) {
-            viewModel.selectTab(0)
-        }
+        if (currentUser?.isBanned == true) {
+            AccountBannedScreen(
+                user = currentUser!!,
+                onLogout = { viewModel.logout() }
+            )
+        } else {
+            androidx.activity.compose.BackHandler(enabled = selectedTab != 0) {
+                viewModel.selectTab(0)
+            }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            val activeBusinessContext by viewModel.activeBusinessContext.collectAsState()
-            val unreadNotificationsCount by viewModel.unreadNotificationsCount.collectAsState()
-            val unreadMessagesCount by viewModel.unreadMessagesCount.collectAsState()
-            
-            if (activeBusinessContext != null) {
-                com.example.ui.screens.BusinessMainScreen(
-                    viewModel = viewModel,
-                    businessContext = activeBusinessContext!!
-                )
-            } else {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        Column {
-                            if (selectedTab != 6) {
-                                TopNavBar(
-                                    selectedTab = selectedTab,
-                                    onTabSelected = { viewModel.selectTab(it) },
-                                    unreadNotificationsCount = unreadNotificationsCount,
-                                    unreadMessagesCount = unreadMessagesCount,
-                                    currentUserAvatar = currentUser?.avatarUrl ?: "",
-                                    coinBalance = userCoins,
-                                    streakDays = streakDays,
-                                    onCoinWalletClick = { viewModel.setShowCoinRechargeModal(true) },
-                                    onDailyStreakClick = { viewModel.setShowDailyRewardsModal(true) },
-                                    onCreateClick = { viewModel.setQuickCreateMenuOpen(true) },
-                                    onSearchClick = { viewModel.setSearchOpen(true) },
-                                    onLiveClick = { viewModel.setLiveStreamingOpen(true) },
-                                    onAppSettingsClick = { viewModel.setAppSettingsOpen(true) },
-                                    onTriggerEmojiBurst = { origin -> viewModel.triggerEmojiBurst(origin) }
-                                )
+            Box(modifier = Modifier.fillMaxSize()) {
+                val activeBusinessContext by viewModel.activeBusinessContext.collectAsState()
+                val unreadNotificationsCount by viewModel.unreadNotificationsCount.collectAsState()
+                val unreadMessagesCount by viewModel.unreadMessagesCount.collectAsState()
+                
+                if (activeBusinessContext != null) {
+                    com.example.ui.screens.BusinessMainScreen(
+                        viewModel = viewModel,
+                        businessContext = activeBusinessContext!!
+                    )
+                } else {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        topBar = {
+                            Column {
+                                if (selectedTab != 6) {
+                                    TopNavBar(
+                                        selectedTab = selectedTab,
+                                        onTabSelected = { viewModel.selectTab(it) },
+                                        unreadNotificationsCount = unreadNotificationsCount,
+                                        unreadMessagesCount = unreadMessagesCount,
+                                        currentUserAvatar = currentUser?.avatarUrl ?: "",
+                                        coinBalance = userCoins,
+                                        streakDays = streakDays,
+                                        onCoinWalletClick = { viewModel.setShowCoinRechargeModal(true) },
+                                        onDailyStreakClick = { viewModel.setShowDailyRewardsModal(true) },
+                                        onCreateClick = { viewModel.setQuickCreateMenuOpen(true) },
+                                        onSearchClick = { viewModel.setSearchOpen(true) },
+                                        onLiveClick = { viewModel.setLiveStreamingOpen(true) },
+                                        onAppSettingsClick = { viewModel.setAppSettingsOpen(true) },
+                                        onTriggerEmojiBurst = { origin -> viewModel.triggerEmojiBurst(origin) }
+                                    )
 
                                 com.example.ui.components.BottomNavBar(
                                     selectedTab = selectedTab,
@@ -375,6 +410,74 @@ fun FriendHubApp(
             )
 
             // Removed LivePreviewFloatingWindow PiP
+        }
+    }
+}
+}
+
+@Composable
+fun AccountBannedScreen(
+    user: com.example.model.User,
+    onLogout: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0F172A))
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = androidx.compose.material.icons.Icons.Default.Warning,
+            contentDescription = "Banned",
+            tint = Color(0xFFEF4444),
+            modifier = Modifier.size(80.dp)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "ACCESS RESTRICTED 🔒",
+            color = Color(0xFFEF4444),
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                fontSize = 22.sp
+            ),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Your account has been permanently suspended / banned.",
+            color = Color.White,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                fontSize = 15.sp
+            ),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFF1E293B))
+                .padding(14.dp)
+        ) {
+            Text(
+                text = "Reason: Repeatedly posting toxic, abusive, or inappropriate content violating FriendHub Community Guidelines. Our automated moderation shield has flagged your credentials.",
+                color = Color(0xFF94A3B8),
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }
+        Spacer(modifier = Modifier.height(30.dp))
+        Button(
+            onClick = onLogout,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.fillMaxWidth().height(48.dp)
+        ) {
+            Text("Log Out", color = Color.White, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, fontSize = 15.sp)
         }
     }
 }
