@@ -186,16 +186,12 @@ class FriendHubRepository {
                         }
                     }
 
-                    if (remotePosts.isNotEmpty()) {
-                        val friendIds = _allFriends.value.map { it.id }
-                        _posts.value = com.example.util.FriendHubSecurityController.filterVisiblePosts(
-                            remotePosts,
-                            _currentUser.value.id,
-                            friendIds
-                        )
-                    } else if (snapshot.isEmpty) {
-                        seedStarterDataToCloud(fs)
-                    }
+                    val friendIds = _allFriends.value.map { it.id }
+                    _posts.value = com.example.util.FriendHubSecurityController.filterVisiblePosts(
+                        remotePosts,
+                        _currentUser.value.id,
+                        friendIds
+                    )
                 }
 
             // 2. Real-time Stories Collection
@@ -211,9 +207,7 @@ class FriendHubRepository {
                             null
                         }
                     }
-                    if (remoteStories.isNotEmpty()) {
-                        _stories.value = remoteStories
-                    }
+                    _stories.value = remoteStories
                 }
 
             // 3. Real-time Reels Collection
@@ -229,9 +223,7 @@ class FriendHubRepository {
                             null
                         }
                     }
-                    if (remoteReels.isNotEmpty()) {
-                        _reels.value = remoteReels
-                    }
+                    _reels.value = remoteReels
                 }
 
             // 4. Real-time Chats Collection
@@ -1313,8 +1305,28 @@ class FriendHubRepository {
             com.example.util.FriendHubSecurityController.sanitizeTokensAndCredentials(content)
         }
 
+        // Extract embedded image URL into mediaUrl if not provided
+        var finalMediaUrl = mediaUrl
+        var cleanedContent = finalContent
+        if (finalMediaUrl.isNullOrBlank()) {
+            val urlRegex = Regex("""(https?://[^\s]+|content://[^\s]+|file://[^\s]+)""")
+            val match = urlRegex.find(finalContent)
+            if (match != null) {
+                val url = match.value
+                if (url.contains(".jpg", ignoreCase = true) || url.contains(".jpeg", ignoreCase = true) ||
+                    url.contains(".png", ignoreCase = true) || url.contains(".gif", ignoreCase = true) ||
+                    url.contains(".webp", ignoreCase = true) || url.contains("firebasestorage", ignoreCase = true) ||
+                    url.contains("unsplash", ignoreCase = true) || url.contains("pexels", ignoreCase = true) ||
+                    url.contains("imgur", ignoreCase = true) || finalContent.contains("📷")
+                ) {
+                    finalMediaUrl = url
+                    cleanedContent = finalContent.replace(url, "").trim().ifEmpty { "📷 Photo" }
+                }
+            }
+        }
+
         // 2. Encrypt message payload using AES-256-GCM End-to-End Encryption
-        val encryptedContent = com.example.util.E2EECryptoEngine.encryptMessage(finalContent, conversationId)
+        val encryptedContent = com.example.util.E2EECryptoEngine.encryptMessage(cleanedContent, conversationId)
 
         val msgId = UUID.randomUUID().toString()
         val message = Message(
@@ -1323,8 +1335,8 @@ class FriendHubRepository {
             senderId = user.id,
             senderName = user.name,
             senderAvatar = user.avatarUrl,
-            content = finalContent,
-            mediaUrl = mediaUrl,
+            content = cleanedContent,
+            mediaUrl = finalMediaUrl,
             timestamp = java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault()).format(java.util.Date()),
             isMe = true,
             isSeen = false,

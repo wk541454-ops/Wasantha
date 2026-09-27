@@ -137,6 +137,24 @@ class MainViewModel(
         }
         viewModelScope.launch {
             try {
+                preferencesManager.appLanguage.collect { lang ->
+                    _currentLanguage.value = lang
+                }
+            } catch (t: Throwable) {
+                _currentLanguage.value = "SI"
+            }
+        }
+        viewModelScope.launch {
+            try {
+                preferencesManager.selectedFont.collect { font ->
+                    _selectedFont.value = font
+                }
+            } catch (t: Throwable) {
+                _selectedFont.value = "Default"
+            }
+        }
+        viewModelScope.launch {
+            try {
                 preferencesManager.isLoggedIn.collect { savedLoggedIn ->
                     val fbLoggedIn = try { FirebaseAuthManager.isLoggedIn() } catch (t: Throwable) { false }
                     _isLoggedIn.value = savedLoggedIn || fbLoggedIn
@@ -561,6 +579,9 @@ class MainViewModel(
 
     fun setFont(fontName: String) {
         _selectedFont.value = fontName
+        viewModelScope.launch {
+            preferencesManager.saveSettingString(PreferencesManager.SELECTED_FONT_KEY, fontName)
+        }
     }
 
 
@@ -801,6 +822,21 @@ class MainViewModel(
         whoCanPostOnProfile: String? = null,
         reviewTagsEnabled: Boolean? = null
     ) {
+        if (language != null) {
+            setLanguage(language)
+        }
+        viewModelScope.launch {
+            if (pushNotificationsEnabled != null) preferencesManager.saveSettingBool(PreferencesManager.PUSH_NOTIF_KEY, pushNotificationsEnabled)
+            if (commentsNotificationsEnabled != null) preferencesManager.saveSettingBool(PreferencesManager.COMMENTS_NOTIF_KEY, commentsNotificationsEnabled)
+            if (tagsNotificationsEnabled != null) preferencesManager.saveSettingBool(PreferencesManager.TAGS_NOTIF_KEY, tagsNotificationsEnabled)
+            if (friendRequestsNotificationsEnabled != null) preferencesManager.saveSettingBool(PreferencesManager.FRIEND_REQ_NOTIF_KEY, friendRequestsNotificationsEnabled)
+            if (doNotDisturb != null) preferencesManager.saveSettingBool(PreferencesManager.DO_NOT_DISTURB_KEY, doNotDisturb)
+            if (autoUpdateOnWifi != null) preferencesManager.saveSettingBool(PreferencesManager.AUTO_UPDATE_WIFI_KEY, autoUpdateOnWifi)
+            if (hdVideoUpload != null) preferencesManager.saveSettingBool(PreferencesManager.HD_VIDEO_UPLOAD_KEY, hdVideoUpload)
+            if (hdPhotoUpload != null) preferencesManager.saveSettingBool(PreferencesManager.HD_PHOTO_UPLOAD_KEY, hdPhotoUpload)
+            if (defaultPostAudience != null) preferencesManager.saveSettingString(PreferencesManager.DEFAULT_POST_AUDIENCE_KEY, defaultPostAudience)
+            if (storyPrivacy != null) preferencesManager.saveSettingString(PreferencesManager.STORY_PRIVACY_KEY, storyPrivacy)
+        }
         val current = currentUser.value
         val updated = current.copy(
             hideReactionCounts = hideReactionCounts ?: current.hideReactionCounts,
@@ -1183,6 +1219,9 @@ class MainViewModel(
             else -> "EN"
         }
         _currentLanguage.value = code
+        viewModelScope.launch {
+            preferencesManager.setLanguage(code)
+        }
         // Persist to user profile
         repository.updateUserProfile(currentUser.value.copy(language = code))
         try {

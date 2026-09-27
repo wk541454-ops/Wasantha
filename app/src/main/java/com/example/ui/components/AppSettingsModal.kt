@@ -1126,25 +1126,30 @@ fun AppSettingsModal(
             onDismiss = { activeDialogId = null }
         ) {
             languages.forEach { lang ->
+                val code = when {
+                    lang.contains("සිංහල") -> "SI"
+                    lang.contains("தமிழ்") -> "TA"
+                    else -> "EN"
+                }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .clickable {
                             selectedLanguage = lang
-                            viewModel.setLanguage(lang)
-                            Toast.makeText(context, "භාෂාව මාරු කරන ලදී: $lang", Toast.LENGTH_SHORT).show()
+                            viewModel.setLanguage(code)
+                            Toast.makeText(context, "Language updated / භාෂාව යාවත්කාලීන විය: $lang", Toast.LENGTH_SHORT).show()
                             activeDialogId = null
                         }
                         .padding(vertical = 10.dp, horizontal = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
-                        selected = (selectedLanguage == lang),
+                        selected = (selectedLanguage == lang || (code == "SI" && selectedLanguage == "SI") || (code == "EN" && selectedLanguage == "EN")),
                         onClick = {
                             selectedLanguage = lang
-                            viewModel.setLanguage(lang)
-                            Toast.makeText(context, "භාෂාව මාරු කරන ලදී: $lang", Toast.LENGTH_SHORT).show()
+                            viewModel.setLanguage(code)
+                            Toast.makeText(context, "Language updated / භාෂාව යාවත්කාලීන විය: $lang", Toast.LENGTH_SHORT).show()
                             activeDialogId = null
                         },
                         colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF6366F1))

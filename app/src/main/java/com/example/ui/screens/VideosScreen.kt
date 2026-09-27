@@ -62,19 +62,64 @@ fun VideosScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        VerticalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-            val reel = reels[page]
-            ReelPlayerItem(
-                reel = reel,
-                isCurrentPage = pagerState.currentPage == page,
-                floatingHeartsState = floatingHeartsState,
-                onCommentClick = { selectedReelForComments = reel },
-                onShareClick = { selectedReelForShare = reel },
-                onOptionsClick = { selectedReelForOptions = reel }
-            )
+        if (reels.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.OndemandVideo,
+                    contentDescription = null,
+                    tint = Color(0xFFA855F7),
+                    modifier = Modifier.size(64.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "No videos yet. Be the first to post a reel!",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    ),
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "තවමත් වීඩියෝ නොමැත. ප්‍රථම රීල් වීඩියෝව එකතු කරන්න!",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF94A3B8)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(
+                    onClick = { viewModel.setCreatePostOpen(true) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFA855F7),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Upload Video / Reel")
+                }
+            }
+        } else {
+            VerticalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                val reel = reels[page]
+                ReelPlayerItem(
+                    reel = reel,
+                    isCurrentPage = pagerState.currentPage == page,
+                    floatingHeartsState = floatingHeartsState,
+                    onCommentClick = { selectedReelForComments = reel },
+                    onShareClick = { selectedReelForShare = reel },
+                    onOptionsClick = { selectedReelForOptions = reel }
+                )
+            }
         }
         
         // Top overlay (back, watch, live)

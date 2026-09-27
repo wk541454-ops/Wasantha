@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.example.animation.FloatingHeartsOverlay
 import com.example.animation.rememberFloatingHeartsState
@@ -159,7 +160,8 @@ fun LiveStreamingScreen(
 
                     // 1. FULL-SCREEN BACKGROUND / HOST VIDEO CAMERA STREAM
                     HostStreamBackgroundLayer(
-                        hostAvatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800"
+                        hostAvatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800",
+                        isCameraOn = isCameraOn
                     )
 
                     // 2. TOP HEADER OVERLAY (Fixed at top, status bar padded)
@@ -555,21 +557,52 @@ fun LiveStreamingScreen(
     }
 }
 
+@Composable
+fun LiveCameraXPreview(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    androidx.compose.ui.viewinterop.AndroidView(
+        factory = { ctx ->
+            val previewView = androidx.camera.view.PreviewView(ctx)
+            val cameraProviderFuture = androidx.camera.lifecycle.ProcessCameraProvider.getInstance(ctx)
+            cameraProviderFuture.addListener({
+                try {
+                    val cameraProvider = cameraProviderFuture.get()
+                    val preview = androidx.camera.core.Preview.Builder().build()
+                    val cameraSelector = androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
+                    preview.setSurfaceProvider(previewView.surfaceProvider)
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview)
+                } catch (e: Exception) {
+                    android.util.Log.e("LiveCameraXPreview", "Failed to bind camera preview: ${e.message}")
+                }
+            }, androidx.core.content.ContextCompat.getMainExecutor(ctx))
+            previewView
+        },
+        modifier = modifier
+    )
+}
+
 /**
  * High-Fidelity Host Camera Stream Background Layer with ambient studio lighting
  */
 @Composable
 private fun HostStreamBackgroundLayer(
-    hostAvatarUrl: String
+    hostAvatarUrl: String,
+    isCameraOn: Boolean = true
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        // High fidelity host stream imagery
-        AsyncImage(
-            model = hostAvatarUrl,
-            contentDescription = "Host Camera Stream",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+        if (isCameraOn) {
+            LiveCameraXPreview(modifier = Modifier.fillMaxSize())
+        } else {
+            AsyncImage(
+                model = hostAvatarUrl,
+                contentDescription = "Host Camera Stream",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
         // Subtle Vignette Overlay for TikTok Live readability
         Box(

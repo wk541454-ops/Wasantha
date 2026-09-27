@@ -74,6 +74,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.toArgb
@@ -135,50 +136,7 @@ fun FeedScreen(
         else -> posts
     }
 
-    // When data is finished / offline: show ONLY what the user previously visited/browsed, or fallback sample posts
-    val baseDisplayPosts = if (!isNetworkAvailable) {
-        val cached = filteredPosts.filter { it.id in visitedPostIds }
-        if (cached.isNotEmpty()) cached else filteredPosts.take(2)
-    } else {
-        filteredPosts
-    }
-
-    val displayPosts = if (baseDisplayPosts.isEmpty()) {
-        listOf(
-            Post(
-                id = "fallback_1",
-                userId = "user_sample_1",
-                userName = "Kasun Perera",
-                userAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&auto=format&fit=crop&q=80",
-                userVerified = true,
-                timestamp = "2 hours ago",
-                content = "Welcome to FriendHub! Enjoy connecting with your friends, sharing stories, and exploring the modern community feed. ✨",
-                mediaUrl = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&auto=format&fit=crop&q=80",
-                mediaType = MediaType.IMAGE,
-                likeCount = 42,
-                commentCount = 5,
-                shareCount = 2,
-                isLikedByMe = false
-            ),
-            Post(
-                id = "fallback_2",
-                userId = "user_sample_2",
-                userName = "Nirosha Silva",
-                userAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
-                userVerified = false,
-                timestamp = "5 hours ago",
-                content = "Beautiful evening walk at Galle Face! 🌅🇱🇰",
-                mediaUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80",
-                mediaType = MediaType.IMAGE,
-                likeCount = 128,
-                commentCount = 22,
-                shareCount = 11,
-                isLikedByMe = true
-            )
-        )
-    } else {
-        baseDisplayPosts
-    }
+    val displayPosts = filteredPosts
 
     val context = LocalContext.current
     var initialPostMediaType by remember { mutableStateOf(MediaType.NONE) }
@@ -317,8 +275,62 @@ fun FeedScreen(
                 // Posts List
                 if (displayPosts.isEmpty()) {
                     item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text(text = "කිසිදු පුවතක් හමුවී නැත (No posts found)", color = Color.Gray, fontSize = 14.sp)
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = OledSurfaceVariant),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, OledCardBorder)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.RssFeed,
+                                    contentDescription = null,
+                                    tint = NeonPurple,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "No posts yet. Be the first to share something!",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp
+                                    ),
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "තවමත් පෝස්ට් නොමැත. ප්‍රථමයෙන්ම යමක් බෙදාගන්න!",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF94A3B8),
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Button(
+                                    onClick = { viewModel.setCreatePostOpen(true) },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = NeonPurple,
+                                        contentColor = Color.White
+                                    ),
+                                    shape = RoundedCornerShape(20.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Create Post")
+                                }
+                            }
                         }
                     }
                 } else {

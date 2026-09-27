@@ -1,0 +1,102 @@
+package com.example.util
+
+object LanguageManager {
+
+    private val translations: Map<String, Map<String, String>> = mapOf(
+        "SI" to mapOf(
+            "app_name" to "FriendHub",
+            "nav_home" to "පුවත් (Home)",
+            "nav_videos" to "වීඩියෝ (Watch)",
+            "nav_friends" to "යහළුවන් (Friends)",
+            "nav_marketplace" to "වෙළඳපොළ (Marketplace)",
+            "nav_notifications" to "දැනුම්දීම් (Notifications)",
+            "nav_profile" to "මගේ පැතිකඩ (Profile)",
+            "nav_menu" to "මෙනුව (Menu)",
+            "nav_settings" to "සැකසුම් (Settings)",
+            "whats_on_your_mind" to "ඔබගේ සිතේ තියෙන්නෙ මොනවාද?",
+            "create_post" to "නව පෝස්ටුවක් තනන්න",
+            "no_posts_yet" to "තවමත් පෝස්ට් නොමැත. ප්‍රථමයෙන්ම යමක් බෙදාගන්න!",
+            "no_videos_yet" to "තවමත් වීඩියෝ නොමැත. ප්‍රථම රීල් වීඩියෝව එකතු කරන්න!",
+            "offline_mode" to "අන්තර්ජාල සම්බන්ධතාවය නොමැත",
+            "retry" to "නැවත උත්සාහ කරන්න",
+            "language" to "භාෂාව (Language)",
+            "sinhala" to "සිංහල",
+            "english" to "English",
+            "tamil" to "தமிழ்",
+            "settings_and_privacy" to "සැකසුම් සහ පෞද්ගලිකත්වය",
+            "dark_mode" to "අඳුරු තේමාව (Dark Mode)",
+            "active_status" to "සක්‍රීය තත්ත්වය (Active Status)",
+            "push_notifications" to "Push දැනුම්දීම්",
+            "hd_uploads" to "HD ඡායාරූප සහ වීඩියෝ Uploads",
+            "sound_effects" to "ශබ්ද බලපෑම් (Sound Effects)",
+            "save_changes" to "තොරතුරු සුරකින්න",
+            "settings_saved_success" to "සැකසුම් සාර්ථකව සුරකින ලදී! ✨",
+            "logout" to "ලොග් අවුට් වන්න (Log Out)"
+        ),
+        "EN" to mapOf(
+            "app_name" to "FriendHub",
+            "nav_home" to "Home",
+            "nav_videos" to "Watch",
+            "nav_friends" to "Friends",
+            "nav_marketplace" to "Marketplace",
+            "nav_notifications" to "Notifications",
+            "nav_profile" to "Profile",
+            "nav_menu" to "Menu",
+            "nav_settings" to "Settings",
+            "whats_on_your_mind" to "What's on your mind?",
+            "create_post" to "Create Post",
+            "no_posts_yet" to "No posts yet. Be the first to share something!",
+            "no_videos_yet" to "No videos yet. Be the first to post a reel!",
+            "offline_mode" to "No Internet Connection",
+            "retry" to "Retry Connection",
+            "language" to "Language",
+            "sinhala" to "සිංහල",
+            "english" to "English",
+            "tamil" to "தமிழ்",
+            "settings_and_privacy" to "Settings & Privacy",
+            "dark_mode" to "Dark Mode",
+            "active_status" to "Active Status",
+            "push_notifications" to "Push Notifications",
+            "hd_uploads" to "HD Photos & Videos Uploads",
+            "sound_effects" to "Sound Effects",
+            "save_changes" to "Save Changes",
+            "settings_saved_success" to "Settings saved successfully! ✨",
+            "logout" to "Log Out"
+        ),
+        "TA" to mapOf(
+            "app_name" to "FriendHub",
+            "nav_home" to "முகப்பு (Home)",
+            "nav_videos" to "வீடியோக்கள் (Watch)",
+            "nav_friends" to "நண்பர்கள் (Friends)",
+            "nav_marketplace" to "சந்தை (Marketplace)",
+            "nav_notifications" to "அறிவிப்புகள் (Notifications)",
+            "nav_profile" to "சுயவிவரம் (Profile)",
+            "nav_menu" to "மெனு (Menu)",
+            "nav_settings" to "அமைப்புகள் (Settings)",
+            "whats_on_your_mind" to "உங்கள் மனதில் என்ன இருக்கிறது?",
+            "create_post" to "புதிய பதிவை உருவாக்கு",
+            "no_posts_yet" to "இன்னும் பதிவுகள் இல்லை. முதலில் பகிரவும்!",
+            "no_videos_yet" to "இன்னும் வீடியோக்கள் இல்லை. முதலில் ரீல் பதிவிடவும்!",
+            "offline_mode" to "இணைய இணைப்பு இல்லை",
+            "retry" to "மீண்டும் முயல்க",
+            "language" to "மொழி (Language)",
+            "sinhala" to "සිංහල",
+            "english" to "English",
+            "tamil" to "தமிழ்",
+            "settings_and_privacy" to "அமைப்புகள் & தனியுரிமை",
+            "dark_mode" to "இருண்ட பயன்முறை (Dark Mode)",
+            "active_status" to "செயலில் உள்ள நிலை (Active Status)",
+            "push_notifications" to "அறிவிப்புகள் (Push Notifications)",
+            "hd_uploads" to "HD புகைப்படங்கள் & வீடியோக்கள் பதிவேற்றம்",
+            "sound_effects" to "ஒலி விளைவுகள் (Sound Effects)",
+            "save_changes" to "மாற்றங்களைச் சேமிக்கவும்",
+            "settings_saved_success" to "அமைப்புகள் வெற்றிபெற சேமிக்கப்பட்டன! ✨",
+            "logout" to "வெளியேறு (Log Out)"
+        )
+    )
+
+    fun getString(key: String, lang: String = "SI"): String {
+        val langMap = translations[lang] ?: translations["SI"]!!
+        return langMap[key] ?: translations["EN"]?.get(key) ?: key
+    }
+}

@@ -3647,14 +3647,47 @@ fun MessageBubbleRow(
                                 }
                             }
                         } else {
-                            Text(
-                                text = if (isTranslated) "[AI Translated]: ${message.content}" else message.content,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                                color = Color.White
+                            val urlRegex = Regex("""(https?://[^\s]+|content://[^\s]+|file://[^\s]+)""")
+                            val match = urlRegex.find(message.content)
+                            val extractedUrl = match?.value
+                            val isImageUrl = extractedUrl != null && (
+                                extractedUrl.contains(".jpg", ignoreCase = true) || extractedUrl.contains(".jpeg", ignoreCase = true) ||
+                                extractedUrl.contains(".png", ignoreCase = true) || extractedUrl.contains(".gif", ignoreCase = true) ||
+                                extractedUrl.contains(".webp", ignoreCase = true) || extractedUrl.contains("firebasestorage", ignoreCase = true) ||
+                                extractedUrl.contains("unsplash", ignoreCase = true) || extractedUrl.contains("pexels", ignoreCase = true) ||
+                                extractedUrl.contains("imgur", ignoreCase = true) || message.content.contains("📷")
                             )
+
+                            val displayContent = if (isImageUrl && extractedUrl != null) {
+                                message.content.replace(extractedUrl, "").replace("📷 [Snap]", "").replace("📷 [Photo]", "").replace("📷 Image Attachment:", "").trim()
+                            } else {
+                                message.content
+                            }
+
+                            if (displayContent.isNotBlank()) {
+                                Text(
+                                    text = if (isTranslated) "[AI Translated]: $displayContent" else displayContent,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+                                    color = Color.White
+                                )
+                            }
+
+                            val activeMediaUrl = message.mediaUrl?.ifBlank { null } ?: if (isImageUrl) extractedUrl else null
+                            if (!activeMediaUrl.isNullOrBlank()) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                AsyncImage(
+                                    model = activeMediaUrl,
+                                    contentDescription = "Attached Photo",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(180.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                )
+                            }
                         }
 
-                        if (aiChatEnabled && !message.isMe) {
+                        if (aiChatEnabled && !message.isMe && !message.content.contains("http://") && !message.content.contains("https://")) {
                             Text(
                                 text = if (isTranslated) "Show Original" else "AI Translate",
                                 fontSize = 10.sp,
@@ -3664,50 +3697,6 @@ fun MessageBubbleRow(
                                     .clickable { onTranslate() }
                                     .padding(top = 4.dp)
                             )
-                        }
-
-                        if (!message.mediaUrl.isNullOrBlank()) {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            val isDownloaded = mediaAutoSave || message.isMediaDownloaded || message.isMe
-                            
-                            if (isDownloaded) {
-                                AsyncImage(
-                                    model = message.mediaUrl,
-                                    contentDescription = "Attached Photo",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(180.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                )
-                            } else {
-                                // Manual Download Placeholder
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(180.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.DarkGray)
-                                        .clickable { onDownloadMedia() },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Icon(
-                                            imageVector = Icons.Default.Download,
-                                            contentDescription = "Download Media",
-                                            tint = Color.White,
-                                            modifier = Modifier.size(40.dp)
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "බාගත කිරීමට තට්ටු කරන්න\n(Tap to download)",
-                                            color = Color.White,
-                                            fontSize = 12.sp,
-                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                        )
-                                    }
-                                }
-                            }
                         }
                     }
                 }
