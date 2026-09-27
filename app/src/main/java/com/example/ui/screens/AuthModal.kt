@@ -84,7 +84,7 @@ fun AuthModal(
     var selectedAuthTab by remember { mutableIntStateOf(1) } // 0: Email/Pass, 1: Phone OTP
 
     // Phone Auth States
-    var phoneNumber by remember { mutableStateOf("+94 77 123 4567") }
+    var phoneNumber by remember { mutableStateOf("") }
     var otpCode by remember { mutableStateOf("") }
     var phoneVerificationId by remember { mutableStateOf<String?>(null) }
     var isSendingOtp by remember { mutableStateOf(false) }
@@ -93,7 +93,7 @@ fun AuthModal(
     var otpExpirySeconds by remember { mutableIntStateOf(120) }
 
     // Email Auth States
-    var email by remember { mutableStateOf("user@friendhub.app") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isSigningInEmail by remember { mutableStateOf(false) }
 

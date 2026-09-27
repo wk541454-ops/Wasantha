@@ -331,7 +331,7 @@ fun MenuScreen(
                         viewModel.switchContextToBusiness(
                             com.example.model.BusinessPage(
                                 id = "business_page_1",
-                                name = "Wasantha Kumara Official Store",
+                                name = "FriendHub Official Store",
                                 category = "Shopping & Retail • Electronics",
                                 imageUrl = "https://images.unsplash.com/photo-1557821552-17105176674c?w=500&auto=format&fit=crop&q=80",
                                 coverUrl = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&auto=format&fit=crop&q=80",
@@ -375,7 +375,7 @@ fun MenuScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Wasantha Kumara Official Store (වෙනම Home Screen)",
+                            text = "FriendHub Official Store (වෙනම Home Screen)",
                             color = Color(0xFF65676B),
                             fontSize = 12.sp
                         )
@@ -1366,7 +1366,7 @@ fun PagesDialog(viewModel: MainViewModel? = null, onDismiss: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Wasantha Kumara Official Store", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("FriendHub Official Store", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                             Text("12K Followers • Retail & Gadgets", color = Color(0xFF94A3B8), fontSize = 11.sp)
                         }
 
@@ -1375,7 +1375,7 @@ fun PagesDialog(viewModel: MainViewModel? = null, onDismiss: () -> Unit) {
                                 viewModel?.switchContextToBusiness(
                                     com.example.model.BusinessPage(
                                         id = "business_page_1",
-                                        name = "Wasantha Kumara Official Store",
+                                        name = "FriendHub Official Store",
                                         category = "Shopping & Retail • Electronics",
                                         imageUrl = "https://images.unsplash.com/photo-1557821552-17105176674c?w=500&auto=format&fit=crop&q=80",
                                         coverUrl = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&auto=format&fit=crop&q=80",

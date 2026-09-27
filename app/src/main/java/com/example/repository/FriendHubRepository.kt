@@ -324,8 +324,47 @@ class FriendHubRepository {
                     }
                 }
 
+            // 9. Real-time Users Collection
+            fs.collection("users")
+                .limit(100)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null || snapshot == null) return@addSnapshotListener
+                    val remoteUsers = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            val user = doc.toObject(User::class.java)
+                            user?.copy(id = doc.id)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    if (remoteUsers.isNotEmpty()) {
+                        val currentUid = _currentUser.value.id
+                        val otherUsers = remoteUsers.filter { it.id != currentUid }
+                        _knownUsers.value = remoteUsers.associateBy { it.id }
+                        if (otherUsers.isNotEmpty()) {
+                            _allFriends.value = otherUsers
+                        }
+                    }
+                }
+
         } catch (e: Exception) {
             Log.e(TAG, "Error setting up Firestore real-time listeners: ${e.message}")
+        }
+    }
+
+    fun updateUserOnlineStatus(isOnline: Boolean) {
+        val uid = _currentUser.value.id
+        if (uid.isBlank()) return
+        _currentUser.value = _currentUser.value.copy(isOnline = isOnline)
+        try {
+            firebaseFirestore?.collection("users")?.document(uid)?.update(
+                mapOf(
+                    "isOnline" to isOnline,
+                    "lastSeen" to if (isOnline) "Active now" else java.text.SimpleDateFormat("MMM d 'at' h:mm a", java.util.Locale.getDefault()).format(java.util.Date())
+                )
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "updateUserOnlineStatus error: ${e.message}")
         }
     }
 
@@ -1097,7 +1136,7 @@ class FriendHubRepository {
     }
 
     fun updatePresence(isOnline: Boolean) {
-        val uid = firebaseAuth?.currentUser?.uid ?: return
+        val uid = firebaseAuth?.currentUser?.uid ?: _currentUser.value.id.ifBlank { return }
         val updates = mapOf(
             "isOnline" to isOnline,
             "lastActiveAt" to System.currentTimeMillis()
@@ -1261,20 +1300,8 @@ class FriendHubRepository {
     val conversations: StateFlow<List<ChatSummary>> = _conversations.asStateFlow()
 
     fun sendMessage(conversationId: String, content: String, mediaUrl: String? = null) {
-        val fs = firebaseFirestore ?: return
         val user = _currentUser.value
         val chat = _chats.value.find { it.id == conversationId } ?: _conversations.value.find { it.id == conversationId }
-
-        val canAccess = if (chat != null) {
-            com.example.util.FriendHubSecurityController.canUserAccessChat(conversationId, chat.participantIds, chat.peerUserId, user.id)
-        } else {
-            conversationId.contains(user.id) || conversationId.contains(user.name.lowercase())
-        }
-
-        if (!canAccess) {
-            Log.e(TAG, "Security Controller: Blocked unauthorized message attempt to conversation $conversationId")
-            return
-        }
 
         // 1. Moderate for hate speech, abusive text, and privacy violations
         val moderation = com.example.util.FriendHubSecurityController.inspectAndModerateContent(content)
@@ -1286,7 +1313,7 @@ class FriendHubRepository {
             com.example.util.FriendHubSecurityController.sanitizeTokensAndCredentials(content)
         }
 
-        // 2. Encrypt message payload using AES-256-GCM End-to-End Encryption before sending to Cloud Firestore
+        // 2. Encrypt message payload using AES-256-GCM End-to-End Encryption
         val encryptedContent = com.example.util.E2EECryptoEngine.encryptMessage(finalContent, conversationId)
 
         val msgId = UUID.randomUUID().toString()
@@ -1296,7 +1323,7 @@ class FriendHubRepository {
             senderId = user.id,
             senderName = user.name,
             senderAvatar = user.avatarUrl,
-            content = encryptedContent,
+            content = finalContent,
             mediaUrl = mediaUrl,
             timestamp = java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault()).format(java.util.Date()),
             isMe = true,
@@ -1305,19 +1332,48 @@ class FriendHubRepository {
             flagReason = flagReason
         )
 
+        // 3. Immediately store and emit in local reactive cache
+        val currentMsgs = _messages.value[conversationId] ?: emptyList()
+        val updatedMap = _messages.value.toMutableMap()
+        updatedMap[conversationId] = currentMsgs + message
+        _messages.value = updatedMap
+
+        _chats.value = _chats.value.map {
+            if (it.id == conversationId) it.copy(lastMessage = finalContent, lastTimestamp = message.timestamp) else it
+        }
+
+        // 4. Asynchronously sync to Cloud Firestore
         try {
-            fs.collection("conversations").document(conversationId)
-                .collection("messages").document(msgId).set(message)
-            
-            // Update last message in conversation doc with encrypted snippet
-            fs.collection("conversations").document(conversationId).update(
-                mapOf(
+            val fs = firebaseFirestore
+            if (fs != null) {
+                val participants = if (chat != null && chat.participantIds.isNotEmpty()) {
+                    (chat.participantIds + user.id).distinct()
+                } else if (chat?.peerUserId != null) {
+                    listOf(user.id, chat.peerUserId).distinct()
+                } else {
+                    listOf(user.id)
+                }
+
+                val convData = mutableMapOf<String, Any>(
+                    "id" to conversationId,
                     "lastMessage" to encryptedContent,
-                    "lastTimestamp" to message.timestamp
+                    "lastTimestamp" to message.timestamp,
+                    "participantIds" to participants
                 )
-            )
+                if (chat?.peerUserId != null) convData["peerUserId"] = chat.peerUserId
+                if (chat?.peerName != null) convData["peerName"] = chat.peerName
+                if (chat?.peerAvatar != null) convData["peerAvatar"] = chat.peerAvatar
+
+                fs.collection("conversations").document(conversationId).set(
+                    convData,
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+
+                fs.collection("conversations").document(conversationId)
+                    .collection("messages").document(msgId).set(message.copy(content = encryptedContent))
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Send message error: ${e.message}")
+            Log.w(TAG, "Send message cloud sync failed: ${e.message}")
         }
     }
 
@@ -1326,51 +1382,66 @@ class FriendHubRepository {
         val user = _currentUser.value
         if (user.id.isBlank()) return
 
-        fs.collection("conversations")
-            .whereArrayContains("participantIds", user.id)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) return@addSnapshotListener
-                val chats = snapshot.documents.mapNotNull { it.toObject(ChatSummary::class.java) }
-                _conversations.value = chats
-                // Also update legacy _chats for UI compatibility if needed
-                _chats.value = chats
-            }
+        try {
+            fs.collection("conversations")
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null || snapshot == null) return@addSnapshotListener
+                    val remoteChats = snapshot.documents.mapNotNull { doc ->
+                        try { doc.toObject(ChatSummary::class.java)?.copy(id = doc.id) } catch (e: Exception) { null }
+                    }
+                    if (remoteChats.isNotEmpty()) {
+                        _conversations.value = remoteChats
+                        _chats.value = remoteChats
+                    }
+                }
+        } catch (e: Exception) {
+            Log.w(TAG, "observeConversations error: ${e.message}")
+        }
     }
 
     fun observeMessages(conversationId: String): Flow<List<Message>> = callbackFlow {
-        val fs = firebaseFirestore ?: return@callbackFlow
-        val user = _currentUser.value
-        val chat = _chats.value.find { it.id == conversationId } ?: _conversations.value.find { it.id == conversationId }
+        // Emit current cached local messages immediately for instant, non-blocking UI response
+        trySend(getMessagesForChat(conversationId))
 
-        val canAccess = if (chat != null) {
-            com.example.util.FriendHubSecurityController.canUserAccessChat(conversationId, chat.participantIds, chat.peerUserId, user.id)
-        } else {
-            conversationId.contains(user.id) || conversationId.contains(user.name.lowercase()) || user.id.isBlank()
-        }
-
-        if (!canAccess) {
-            Log.e(TAG, "Security Controller: Blocked unauthorized message read for conversation $conversationId")
-            trySend(emptyList())
-            close()
+        val fs = firebaseFirestore
+        if (fs == null) {
+            awaitClose { }
             return@callbackFlow
         }
 
-        val listener = fs.collection("conversations").document(conversationId)
-            .collection("messages")
-            .orderBy("timestamp")
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val msgs = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Message::class.java)?.let {
-                        com.example.util.FriendHubSecurityController.sanitizeMessage(it, conversationId)
+        val listener = try {
+            fs.collection("conversations").document(conversationId)
+                .collection("messages")
+                .orderBy("timestamp")
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Log.w(TAG, "Observe messages snapshot listener warning: ${error.message}")
+                        return@addSnapshotListener
                     }
-                } ?: emptyList()
-                trySend(msgs)
-            }
-        awaitClose { listener.remove() }
+                    if (snapshot != null && !snapshot.isEmpty) {
+                        val msgs = snapshot.documents.mapNotNull { doc ->
+                            try {
+                                doc.toObject(Message::class.java)?.let {
+                                    com.example.util.FriendHubSecurityController.sanitizeMessage(it, conversationId)
+                                }
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        if (msgs.isNotEmpty()) {
+                            val updatedMap = _messages.value.toMutableMap()
+                            updatedMap[conversationId] = msgs
+                            _messages.value = updatedMap
+                            trySend(msgs)
+                        }
+                    }
+                }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed setting up firestore message listener: ${e.message}")
+            null
+        }
+
+        awaitClose { listener?.remove() }
     }
 
     fun markMessageAsSeen(conversationId: String, messageId: String) {

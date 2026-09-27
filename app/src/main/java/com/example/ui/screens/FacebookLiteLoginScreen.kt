@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -96,6 +97,32 @@ import com.example.repository.AccountManager
 import com.example.repository.AuthAccount
 import kotlinx.coroutines.delay
 import kotlin.random.Random
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.Canvas
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 // Enum to manage screens within Facebook Lite Login
 enum class FbLoginStep {
@@ -127,9 +154,9 @@ fun FacebookLiteLoginScreen(
 
     // Main Login States - Dual tabs: 0 = Phone Number, 1 = Email Address
     var selectedLoginTab by remember { mutableIntStateOf(0) }
-    var phoneInput by remember { mutableStateOf(currentUser.phone.ifBlank { "+94 77 123 4567" }) }
-    var emailInput by remember { mutableStateOf(currentUser.email.ifBlank { "alex.vance@friendhub.io" }) }
-    var password by remember { mutableStateOf("password123") }
+    var phoneInput by remember { mutableStateOf("") }
+    var emailInput by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var selectedLanguage by remember { mutableStateOf("සිංහල") }
     var loginErrorMessage by remember { mutableStateOf<String?>(null) }
@@ -545,445 +572,427 @@ private fun MainLoginView(
     onForgotPassword: () -> Unit,
     onCreateAccount: () -> Unit
 ) {
-    val languages = listOf("සිංහල", "English", "தமிழ்")
+    var unifiedInput by remember { mutableStateOf(if (selectedLoginTab == 0) phoneInput else emailInput) }
+
+    // Make sure changes from external triggers update our unified state
+    LaunchedEffect(phoneInput, emailInput, selectedLoginTab) {
+        unifiedInput = if (selectedLoginTab == 0) phoneInput else emailInput
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
+            .background(Color.White)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Languages Row
+        // 1. Beautiful Floating Smartphone & Flying Social Emojis Banner
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(260.dp)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF00C6FF), // Bright modern cyan
+                            Color(0xFF0072FF)  // Deep royal blue
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            // Blended group of friends in the background (translucent silhouette style)
+            AsyncImage(
+                model = "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1000&auto=format&fit=crop&q=80",
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                alpha = 0.3f,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // Background subtle floating bubbles
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawCircle(color = Color.White.copy(alpha = 0.08f), radius = 50f, center = androidx.compose.ui.geometry.Offset(x = size.width * 0.15f, y = size.height * 0.25f))
+                drawCircle(color = Color.White.copy(alpha = 0.05f), radius = 120f, center = androidx.compose.ui.geometry.Offset(x = size.width * 0.85f, y = size.height * 0.3f))
+                drawCircle(color = Color.White.copy(alpha = 0.06f), radius = 80f, center = androidx.compose.ui.geometry.Offset(x = size.width * 0.3f, y = size.height * 0.8f))
+            }
+
+            // Tilted 3D Floating Smartphone mockup frame
+            Box(
+                modifier = Modifier
+                    .size(width = 82.dp, height = 152.dp)
+                    .graphicsLayer {
+                        rotationZ = -12f
+                        rotationY = 15f
+                        cameraDistance = 8 * density
+                    }
+                    .border(2.5.dp, Color.White, RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(16.dp))
+                    .padding(5.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // Smartphone Screen UI Mockup
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Mini user avatar circle inside mockup
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.85f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = Color(0xFF0072FF),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    // Mini credential input mockup lines
+                    Box(modifier = Modifier.size(width = 46.dp, height = 4.dp).background(Color.White.copy(alpha = 0.6f), RoundedCornerShape(2.dp)))
+                    Box(modifier = Modifier.size(width = 46.dp, height = 4.dp).background(Color.White.copy(alpha = 0.45f), RoundedCornerShape(2.dp)))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    // Mini log in pill button mockup
+                    Box(modifier = Modifier.size(width = 28.dp, height = 7.dp).background(Color.White, RoundedCornerShape(3.dp)))
+                }
+            }
+
+            // Flying 3D-style icons scattered around the smartphone
+            // Icon 1: Red Mail (Top-Left)
+            Box(
+                modifier = Modifier
+                    .offset(x = (-82).dp, y = (-42).dp)
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFFEF4444))
+                    .padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = Icons.Default.Email, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            }
+
+            // Icon 2: Red Heart (Left-Bottom)
+            Box(
+                modifier = Modifier
+                    .offset(x = (-94).dp, y = 34.dp)
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFFEF4444))
+                    .padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = Icons.Default.Favorite, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            }
+
+            // Icon 3: Yellow Location Pin (Top-Right)
+            Box(
+                modifier = Modifier
+                    .offset(x = (-46).dp, y = (-88).dp)
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFFFBBF24))
+                    .padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = Icons.Default.Place, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            }
+
+            // Icon 4: Cyan Chat Message Bubble (Right-Bottom)
+            Box(
+                modifier = Modifier
+                    .offset(x = 88.dp, y = 42.dp)
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFF06B6D4))
+                    .padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = Icons.Default.ChatBubble, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            }
+
+            // Icon 5: Pink Photography Camera (Right-Middle)
+            Box(
+                modifier = Modifier
+                    .offset(x = 84.dp, y = (-38).dp)
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFFEC4899))
+                    .padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            }
+
+            // Icon 6: Purple Community Star (Top-Right-Far)
+            Box(
+                modifier = Modifier
+                    .offset(x = 52.dp, y = (-84).dp)
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFF8B5CF6))
+                    .padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = Icons.Default.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            }
+
+            // Icon 7: Red Video Play Arrow (Bottom-Center-Right)
+            Box(
+                modifier = Modifier
+                    .offset(x = 42.dp, y = 84.dp)
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(Color(0xFFEF4444))
+                    .padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            }
+        }
+
+        // 2. Smooth Bezier Wave Transition
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+                .background(Color.White)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val w = size.width
+                val h = size.height
+                val path = Path().apply {
+                    moveTo(0f, 0f)
+                    quadraticTo(w * 0.5f, -h * 0.8f, w, 0f)
+                    lineTo(w, h)
+                    lineTo(0f, h)
+                    close()
+                }
+                val shadowPath = Path().apply {
+                    moveTo(0f, -4f)
+                    quadraticTo(w * 0.5f, -h * 1.2f, w, -4f)
+                    lineTo(w, h)
+                    lineTo(0f, h)
+                    close()
+                }
+                drawPath(shadowPath, color = Color(0x332563EB))
+                drawPath(path, color = Color.White)
+            }
+        }
+
+        // 3. Language Selector Row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 14.dp),
+                .padding(vertical = 4.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val languages = listOf("සිංහල", "English", "தமிழ்")
             languages.forEachIndexed { index, lang ->
                 Text(
                     text = lang,
-                    fontSize = 13.sp,
-                    color = if (selectedLanguage == lang) Color(0xFF1877F2) else Color(0xFFB0B3B8),
-                    fontWeight = if (selectedLanguage == lang) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 12.sp,
+                    color = if (selectedLanguage == lang) Color(0xFF2563EB) else Color(0xFF94A3B8),
+                    fontWeight = if (selectedLanguage == lang) FontWeight.Bold else FontWeight.Medium,
                     modifier = Modifier
                         .clickable { onLanguageSelected(lang) }
                         .padding(horizontal = 8.dp)
                 )
                 if (index < languages.size - 1) {
-                    Text("•", color = Color(0xFF4E4F50), fontSize = 12.sp)
+                    Text("•", color = Color(0xFFCBD5E1), fontSize = 10.sp)
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // FriendHub Logo
-        Text(
-            text = "FriendHub",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 38.sp,
-                letterSpacing = (-1.5).sp
-            ),
-            color = Color(0xFF1877F2)
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        // 1-Tap Login Card
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .clickable { onOneTapLogin() }
-                .testTag("one_tap_login_card"),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF242526)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF393A3B))
+        // 4. Welcome Headers
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 24.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .border(1.5.dp, Color(0xFF1877F2), CircleShape)
-                ) {
-                    AsyncImage(
-                        model = currentUser.avatarUrl,
-                        contentDescription = currentUser.name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(14.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = currentUser.name,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = when (selectedLanguage) {
-                            "English" -> if (selectedLoginTab == 0) "Log in with phone SMS code" else "Quick log in"
-                            "தமிழ்" -> if (selectedLoginTab == 0) "SMS குறியீட்டுடன் உள்நுழைக" else "விரைவான உள்நுழைவு"
-                            else -> if (selectedLoginTab == 0) "දුරකථන SMS කේතයෙන් පිවිසෙන්න" else "ක්ෂණිකව පිවිසෙන්න"
-                        },
-                        color = Color(0xFF1877F2),
-                        fontSize = 12.sp
-                    )
-                }
-
-                Text(
-                    text = "➔",
-                    color = Color(0xFF1877F2),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        // Divider
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFF393A3B), thickness = 0.8.dp)
             Text(
                 text = when (selectedLanguage) {
-                    "English" -> " OR CHOOSE METHOD "
-                    "தமிழ்" -> " அல்லது முறையைத் தேர்ந்தெடுக்கவும் "
-                    else -> " හෝ ක්‍රමය තෝරන්න "
+                    "English" -> "Welcome to"
+                    "தமிழ்" -> "வரவேற்கிறோம்"
+                    else -> "Welcome to"
                 },
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF8A8D91),
-                modifier = Modifier.padding(horizontal = 8.dp)
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1E3A8A)
             )
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFF393A3B), thickness = 0.8.dp)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "FriendHub",
+                fontSize = 34.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF2563EB)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = when (selectedLanguage) {
+                    "English" -> "Log in to your account and stay connected with your friends."
+                    "தமிழ்" -> "உங்கள் கணக்கில் உள்நுழைந்து உங்கள் நண்பர்களுடன் இணைந்திருங்கள்."
+                    else -> "ඔබගේ ගිණුමට පිවිස මිතුරන් සමඟ නිරන්තරයෙන් සම්බන්ධ වන්න."
+                },
+                fontSize = 13.sp,
+                color = Color(0xFF64748B),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Dual Auth Selector Tabs: [ 📱 Phone Number ] [ ✉️ Email ]
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .background(Color(0xFF242526), RoundedCornerShape(12.dp))
-                .border(1.dp, Color(0xFF393A3B), RoundedCornerShape(12.dp))
-                .padding(4.dp)
-        ) {
-            // Tab 0: Phone Number
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (selectedLoginTab == 0) Color(0xFF1877F2) else Color.Transparent)
-                    .clickable { onTabChange(0) }
-                    .padding(vertical = 10.dp)
-                    .testTag("login_tab_phone"),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Phone,
-                        contentDescription = "Phone",
-                        tint = if (selectedLoginTab == 0) Color.White else Color(0xFFB0B3B8),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = when (selectedLanguage) {
-                            "English" -> "Phone"
-                            "தமிழ்" -> "தொலைபேசி"
-                            else -> "දුරකථන අංකය"
-                        },
-                        fontSize = 13.sp,
-                        fontWeight = if (selectedLoginTab == 0) FontWeight.Bold else FontWeight.Medium,
-                        color = if (selectedLoginTab == 0) Color.White else Color(0xFFB0B3B8)
-                    )
-                }
-            }
-
-            // Tab 1: Email
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (selectedLoginTab == 1) Color(0xFF1877F2) else Color.Transparent)
-                    .clickable { onTabChange(1) }
-                    .padding(vertical = 10.dp)
-                    .testTag("login_tab_email"),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = "Email",
-                        tint = if (selectedLoginTab == 1) Color.White else Color(0xFFB0B3B8),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = when (selectedLanguage) {
-                            "English" -> "Email"
-                            "தமிழ்" -> "மின்னஞ்சல்"
-                            else -> "ඊමේල් (Email)"
-                        },
-                        fontSize = 13.sp,
-                        fontWeight = if (selectedLoginTab == 1) FontWeight.Bold else FontWeight.Medium,
-                        color = if (selectedLoginTab == 1) Color.White else Color(0xFFB0B3B8)
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Form fields based on selectedLoginTab
+        // 5. Input Fields Form Container
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (selectedLoginTab == 0) {
-                // PHONE LOGIN TAB
-                OutlinedTextField(
-                    value = phoneInput,
-                    onValueChange = onPhoneChange,
-                    label = {
-                        Text(
-                            text = when (selectedLanguage) {
-                                "English" -> "Phone Number (+94XXXXXXXXX)"
-                                "தமிழ்" -> "தொலைபேசி எண் (+94...)"
-                                else -> "දුරකථන අංකය (+94...)"
-                            },
-                            fontSize = 13.sp
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Phone,
-                            contentDescription = "Phone",
-                            tint = Color(0xFF1877F2)
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "+94 77 123 4567",
-                            color = Color(0xFF65676B),
-                            fontSize = 13.sp
-                        )
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("login_phone_input"),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF242526),
-                        unfocusedContainerColor = Color(0xFF242526),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF1877F2),
-                        unfocusedBorderColor = Color(0xFF393A3B),
-                        focusedLabelColor = Color(0xFF1877F2),
-                        unfocusedLabelColor = Color(0xFFB0B3B8)
+            // Field 1: Phone or Email Input Capsule
+            OutlinedTextField(
+                value = unifiedInput,
+                onValueChange = {
+                    unifiedInput = it
+                    if (it.contains("@") || it.any { ch -> ch.isLetter() }) {
+                        onTabChange(1) // Switch under the hood to Email
+                        onEmailChange(it)
+                    } else {
+                        onTabChange(0) // Switch under the hood to Phone
+                        onPhoneChange(it)
+                    }
+                },
+                placeholder = {
+                    Text(
+                        text = when (selectedLanguage) {
+                            "English" -> "Phone or email"
+                            "தமிழ்" -> "தொலைபேසි அல்லது மின்னஞ்சல்"
+                            else -> "දුරකථන අංකය හෝ ඊමේල්"
+                        },
+                        color = Color(0xFF94A3B8)
                     )
-                )
-
-                Text(
-                    text = when (selectedLanguage) {
-                        "English" -> "We will send an SMS code to verify your phone number. Carrier rates may apply."
-                        "தமிழ்" -> "உங்கள் தொலைபேசி எண்ணை சரிபார்க்க SMS குறியீடு அனுப்பப்படும்."
-                        else -> "ඔබගේ දුරකථන අංකය සත්‍යාපනය සඳහා ඉලක්කම් 6 ක SMS කේතයක් එවනු ලැබේ."
-                    },
-                    fontSize = 11.sp,
-                    color = Color(0xFF8A8D91),
-                    lineHeight = 15.sp,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
-            } else {
-                // EMAIL LOGIN TAB
-                OutlinedTextField(
-                    value = emailInput,
-                    onValueChange = onEmailChange,
-                    label = {
-                        Text(
-                            text = when (selectedLanguage) {
-                                "English" -> "Email address"
-                                "தமிழ்" -> "மின்னஞ்சல் முகவரி"
-                                else -> "විද්‍යුත් තැපෑල (Email)"
-                            },
-                            fontSize = 13.sp
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Email,
-                            contentDescription = "Email",
-                            tint = Color(0xFF1877F2)
-                        )
-                    },
-                    placeholder = {
-                        Text(
-                            text = "user@example.com",
-                            color = Color(0xFF65676B),
-                            fontSize = 13.sp
-                        )
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("login_email_input"),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF242526),
-                        unfocusedContainerColor = Color(0xFF242526),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF1877F2),
-                        unfocusedBorderColor = Color(0xFF393A3B),
-                        focusedLabelColor = Color(0xFF1877F2),
-                        unfocusedLabelColor = Color(0xFFB0B3B8)
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = null,
+                        tint = Color(0xFF2563EB),
+                        modifier = Modifier.size(22.dp)
                     )
+                },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+                    .testTag("login_phone_input"),
+                shape = RoundedCornerShape(27.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFF1F5F9),
+                    unfocusedContainerColor = Color(0xFFF1F5F9),
+                    focusedTextColor = Color(0xFF1E293B),
+                    unfocusedTextColor = Color(0xFF1E293B),
+                    focusedBorderColor = Color(0xFF2563EB),
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = Color(0xFF2563EB)
                 )
+            )
 
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = onPasswordChange,
-                    label = {
-                        Text(
-                            text = when (selectedLanguage) {
-                                "English" -> "Password"
-                                "தமிழ்" -> "கடவுச்சொல்"
-                                else -> "මුරපදය (Password)"
-                            },
-                            fontSize = 13.sp
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Password",
-                            tint = Color(0xFF1877F2)
-                        )
-                    },
-                    singleLine = true,
-                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    trailingIcon = {
-                        IconButton(onClick = onTogglePassword) {
-                            Icon(
-                                imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = "Toggle password visibility",
-                                tint = Color(0xFF8A8D91)
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("login_password_input"),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF242526),
-                        unfocusedContainerColor = Color(0xFF242526),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFF1877F2),
-                        unfocusedBorderColor = Color(0xFF393A3B),
-                        focusedLabelColor = Color(0xFF1877F2),
-                        unfocusedLabelColor = Color(0xFFB0B3B8)
+            // Field 2: Password Input Capsule
+            OutlinedTextField(
+                value = password,
+                onValueChange = onPasswordChange,
+                placeholder = {
+                    Text(
+                        text = when (selectedLanguage) {
+                            "English" -> "Password"
+                            "தமிழ்" -> "கடவுச்சொல்"
+                            else -> "මුරපදය (Password)"
+                        },
+                        color = Color(0xFF94A3B8)
                     )
-                )
-            }
-
-            // Error Message Banner
-            if (loginErrorMessage != null) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("login_error_card"),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF3B1219)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE41E3F)),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = null,
+                        tint = Color(0xFF2563EB),
+                        modifier = Modifier.size(22.dp)
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = onTogglePassword) {
                         Icon(
-                            imageVector = Icons.Default.Security,
-                            contentDescription = "Error",
-                            tint = Color(0xFFE41E3F),
+                            imageVector = if (isPasswordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                            contentDescription = null,
+                            tint = Color(0xFF94A3B8),
                             modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = loginErrorMessage,
-                            color = Color(0xFFFFB4AB),
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp
-                        )
                     }
+                },
+                singleLine = true,
+                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+                    .testTag("login_password_input"),
+                shape = RoundedCornerShape(27.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFF1F5F9),
+                    unfocusedContainerColor = Color(0xFFF1F5F9),
+                    focusedTextColor = Color(0xFF1E293B),
+                    unfocusedTextColor = Color(0xFF1E293B),
+                    focusedBorderColor = Color(0xFF2563EB),
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = Color(0xFF2563EB)
+                )
+            )
+
+            // Error Banners
+            if (loginErrorMessage != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().testTag("login_error_card"),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF2F2)),
+                    border = BorderStroke(1.dp, Color(0xFFFCA5A5)),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = loginErrorMessage,
+                        color = Color(0xFF991B1B),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
                 }
             }
 
-            // Unverified Email Warning Banner
             if (unverifiedEmailWarning && selectedLoginTab == 1) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF332A00)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFB800)),
-                    shape = RoundedCornerShape(10.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
+                    border = BorderStroke(1.dp, Color(0xFFFCD34D)),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Warning,
-                                contentDescription = "Unverified",
-                                tint = Color(0xFFFFB800),
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "ඊමේල් ලිපිනය තහවුරු කර නොමැත",
-                                color = Color(0xFFFFE082),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        Text(
+                            text = "Please verify your email address to proceed.",
+                            color = Color(0xFF92400E),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "ඔබගේ ඊමේල් ගිණුමට තහවුරු කිරීමේ සබැඳියක් එවන ලදී. කරුණාකර Inbox පරීක්ෂා කරන්න.",
-                            color = Color(0xFFFFE082),
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "සබැඳිය නැවත එවන්න (Resend Verification Email)",
-                            color = Color(0xFF42B72A),
-                            fontSize = 12.sp,
+                            text = "Resend Verification Email",
+                            color = Color(0xFF2563EB),
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clickable { onResendEmailVerification() }
                         )
@@ -993,127 +1002,271 @@ private fun MainLoginView(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Action Button
-            if (selectedLoginTab == 0) {
-                // Phone OTP Button
-                Button(
-                    onClick = onSendPhoneOtp,
-                    enabled = !isOtpSending,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .testTag("send_phone_otp_button"),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1877F2)),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    if (isOtpSending) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("SMS කේතය යවමින්...", color = Color.White, fontSize = 15.sp)
+            // 6. Centered Blue Log In Capsule Button
+            Button(
+                onClick = {
+                    if (selectedLoginTab == 0) {
+                        onSendPhoneOtp()
                     } else {
-                        Icon(
-                            imageVector = Icons.Default.Sms,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        onLoginWithEmail()
+                    }
+                },
+                enabled = !isOtpSending,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .testTag("login_submit_button"),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8)),
+                shape = RoundedCornerShape(26.dp)
+            ) {
+                if (isOtpSending) {
+                    CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+                } else {
+                    Box(modifier = Modifier.fillMaxSize()) {
                         Text(
                             text = when (selectedLanguage) {
-                                "English" -> "Send Login Code (OTP)"
-                                "தமிழ்" -> "SMS குறியீட்டை அனுப்பு"
-                                else -> "SMS කේතය එවන්න (Send OTP)"
+                                "English" -> "Log In"
+                                "தமிழ்" -> "உள்நுழைக"
+                                else -> "පිවිසෙන්න (Log In)"
                             },
-                            fontSize = 15.sp,
+                            color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            fontSize = 16.sp,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .align(Alignment.CenterEnd)
                         )
                     }
                 }
-            } else {
-                // Email Login Button
-                Button(
-                    onClick = onLoginWithEmail,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .testTag("login_submit_button"),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1877F2)),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Text(
-                        text = when (selectedLanguage) {
-                            "English" -> "Log In"
-                            "தமிழ்" -> "உள்நுழைக"
-                            else -> "පිවිසෙන්න (Log In)"
-                        },
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+            }
 
+            // 7. Forgot Password Link
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 TextButton(
                     onClick = onForgotPassword,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("forgot_password_button")
+                    modifier = Modifier.testTag("forgot_password_button")
                 ) {
                     Text(
                         text = when (selectedLanguage) {
-                            "English" -> "Forgotten password?"
-                            "தமிழ்" -> "கடவுச்சொல் மறந்துவிட்டதா?"
+                            "English" -> "Forgot Password?"
+                            "தமிழ்" -> "கடவுச்சොல் மறந்துவிட்டதா?"
                             else -> "මුරපදය අමතකද? (Forgot Password)"
                         },
-                        color = Color(0xFF1877F2),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                        color = Color(0xFF1D4ED8),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     )
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            // 8. "OR" Divider
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0), thickness = 1.dp)
+                Text(
+                    text = "OR",
+                    color = Color(0xFF94A3B8),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0), thickness = 1.dp)
+            }
 
-        // Create Account Button
-        Button(
-            onClick = onCreateAccount,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(46.dp)
-                .testTag("create_new_account_button"),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF42B72A)),
-            shape = RoundedCornerShape(10.dp)
-        ) {
-            Text(
-                text = when (selectedLanguage) {
-                    "English" -> "New FriendHub Account"
-                    "தமிழ்" -> "புதிய FriendHub கணக்கு"
-                    else -> "නව FriendHub ගිණුම සාදන්න"
-                },
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+            // 9. "Create Account" Outlined Capsule Button
+            OutlinedButton(
+                onClick = onCreateAccount,
+                border = BorderStroke(1.5.dp, Color(0xFF2563EB)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .testTag("create_new_account_button"),
+                shape = RoundedCornerShape(26.dp),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.PersonAdd,
+                        contentDescription = null,
+                        tint = Color(0xFF2563EB),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = when (selectedLanguage) {
+                            "English" -> "Create Account"
+                            "தமிழ்" -> "புதிய கணக்கு"
+                            else -> "නව ගිණුමක් සාදන්න"
+                        },
+                        color = Color(0xFF2563EB),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+
+            // 10. Footnote Agreement Links
+            var showTermsDialog by remember { mutableStateOf(false) }
+            var showPrivacyDialog by remember { mutableStateOf(false) }
+
+            val annotatedText = buildAnnotatedString {
+                append("By continuing, you agree to our ")
+                
+                pushStringAnnotation(tag = "TERMS", annotation = "terms")
+                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, color = Color(0xFF2563EB), fontWeight = FontWeight.SemiBold)) {
+                    append("Terms of Service")
+                }
+                pop()
+                
+                append(" and ")
+                
+                pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
+                withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline, color = Color(0xFF2563EB), fontWeight = FontWeight.SemiBold)) {
+                    append("Privacy Policy")
+                }
+                pop()
+            }
+
+            ClickableText(
+                text = annotatedText,
+                style = TextStyle(
+                    fontSize = 11.sp,
+                    color = Color(0xFF64748B),
+                    textAlign = TextAlign.Center
+                ),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                onClick = { offset ->
+                    annotatedText.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
+                        .firstOrNull()?.let {
+                            showTermsDialog = true
+                        }
+                    annotatedText.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                        .firstOrNull()?.let {
+                            showPrivacyDialog = true
+                        }
+                }
             )
+
+            if (showTermsDialog) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { showTermsDialog = false },
+                    title = {
+                        Text(
+                            text = when (selectedLanguage) {
+                                "English" -> "Terms of Service"
+                                "தமிழ்" -> "சேவை விதிமுறைகள்"
+                                else -> "සේවා කොන්දේසි (Terms of Service)"
+                            },
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color(0xFF1E3A8A)
+                        )
+                    },
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .verticalScroll(rememberScrollState())
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "1. Introduction\nWelcome to FriendHub! By accessing or using our application, you agree to comply with and be bound by these Terms of Service. Please read them carefully.\n\n" +
+                                       "2. User Conduct\nYou agree not to post content that is illegal, offensive, harmful, abusive, or infringing on intellectual property. Respect other community members.\n\n" +
+                                       "3. Account Security\nYou are responsible for maintaining the confidentiality of your credentials and password. Inform support immediately if you suspect unauthorized access.\n\n" +
+                                       "4. End-to-End Encryption\nFriendHub provides end-to-end encrypted private chats. While we secure messages in transit, you are responsible for maintaining your device security.\n\n" +
+                                       "5. Intellectual Property\nAll user-generated content remains owned by its creator. FriendHub maintains all rights to the application software and visual designs.",
+                                fontSize = 13.sp,
+                                color = Color(0xFF334155),
+                                lineHeight = 18.sp
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = { showTermsDialog = false },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
+                        ) {
+                            Text("OK", color = Color.White)
+                        }
+                    }
+                )
+            }
+
+            if (showPrivacyDialog) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { showPrivacyDialog = false },
+                    title = {
+                        Text(
+                            text = when (selectedLanguage) {
+                                "English" -> "Privacy Policy"
+                                "தமிழ்" -> "தனியுரிமைக் கொள்கை"
+                                else -> "පෞද්ගලිකත්ව ප්‍රතිපත්තිය (Privacy Policy)"
+                            },
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color(0xFF1E3A8A)
+                        )
+                    },
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .verticalScroll(rememberScrollState())
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = "1. Information We Collect\nWe collect information you provide directly during registration, such as display name, email address, phone number, and avatar image.\n\n" +
+                                       "2. Message Privacy & Encryption\nAll private chat messages are encrypted with AES-256-GCM. FriendHub servers do not store your plain-text private messages.\n\n" +
+                                       "3. Location and Hardware Permissions\nWe access hardware sensors (Camera, Mic) only upon your direct interaction and explicit permission during posts/calls.\n\n" +
+                                       "4. Data Rights and Deletion\nYou have full authority to request data deletion. Under App Settings, you can delete your profile, posts, and conversations permanently from the servers.",
+                                fontSize = 13.sp,
+                                color = Color(0xFF334155),
+                                lineHeight = 18.sp
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = { showPrivacyDialog = false },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1D4ED8))
+                        ) {
+                            Text("OK", color = Color.White)
+                        }
+                    }
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Text(
-            text = when (selectedLanguage) {
-                "English" -> "FriendHub © 2026 • Security & Privacy • Multi-Device"
-                "தமிழ்" -> "FriendHub © 2026 • தனியுரிமை • விதிமுறைகள்"
-                else -> "FriendHub © 2026 • පෞද්ගලිකත්වය • ආරක්ෂාව"
-            },
-            fontSize = 11.sp,
-            color = Color(0xFF65676B),
-            modifier = Modifier.padding(bottom = 20.dp)
-        )
+        // 11. Bottom Decorative Subtle Wave Canvas
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .navigationBarsPadding()
+        ) {
+            val w = size.width
+            val h = size.height
+            val wavePath = Path().apply {
+                moveTo(0f, h)
+                lineTo(0f, h * 0.4f)
+                quadraticTo(w * 0.25f, h * 0.1f, w * 0.5f, h * 0.5f)
+                quadraticTo(w * 0.75f, h * 0.9f, w, h * 0.3f)
+                lineTo(w, h)
+                close()
+            }
+            drawPath(wavePath, color = Color(0x223B82F6))
+        }
     }
 }
 

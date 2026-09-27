@@ -95,11 +95,11 @@ fun BusinessStoreScreen(
                 page
             } else {
                 page.copy(
-                    name = "Wasantha Kumara Official Store",
+                    name = "FriendHub Official Store",
                     category = "E-Commerce & Retail • Official Store",
                     coverUrl = if (page.coverUrl.isNotBlank()) page.coverUrl else "https://images.unsplash.com/photo-1557821552-17105176674c?w=1200&auto=format&fit=crop&q=80",
                     phone = if (page.phone.isNotBlank()) page.phone else "0771234567",
-                    address = if (page.address.isNotBlank()) page.address else "Pelmadulla, Rathnapura, Sri Lanka",
+                    address = if (page.address.isNotBlank()) page.address else "Colombo, Sri Lanka",
                     bio = if (page.bio.isNotBlank()) page.bio else "Official Store for premium gadgets, smart wearables & lifestyle accessories. Islandwide Cash on Delivery available!"
                 )
             }
@@ -1893,9 +1893,9 @@ private fun EditBusinessProfileDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                name = "Wasantha Kumara Official Store"
+                                name = "FriendHub Official Store"
                                 category = "E-Commerce & Retail • Official Store"
-                                Toast.makeText(context, "Set to 'Wasantha Kumara Official Store'", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Set to 'FriendHub Official Store'", Toast.LENGTH_SHORT).show()
                             }
                     ) {
                         Row(
@@ -1905,7 +1905,7 @@ private fun EditBusinessProfileDialog(
                             Icon(Icons.Default.AutoFixHigh, contentDescription = null, tint = Suite_Cyan, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Use: 'Wasantha Kumara Official Store'",
+                                text = "Use: 'FriendHub Official Store'",
                                 color = Suite_Cyan,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold

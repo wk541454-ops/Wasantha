@@ -139,10 +139,10 @@ class MainViewModel(
             try {
                 preferencesManager.isLoggedIn.collect { savedLoggedIn ->
                     val fbLoggedIn = try { FirebaseAuthManager.isLoggedIn() } catch (t: Throwable) { false }
-                    _isLoggedIn.value = savedLoggedIn || fbLoggedIn || true
+                    _isLoggedIn.value = savedLoggedIn || fbLoggedIn
                 }
             } catch (t: Throwable) {
-                _isLoggedIn.value = true
+                _isLoggedIn.value = false
             }
         }
         viewModelScope.launch {
@@ -844,8 +844,13 @@ class MainViewModel(
         
         messageCollectionJob?.cancel()
         messageCollectionJob = viewModelScope.launch {
-            repository.observeMessages(chat.id).collect { msgs ->
-                _activeChatMessages.value = msgs
+            try {
+                repository.observeMessages(chat.id).collect { msgs ->
+                    _activeChatMessages.value = if (msgs.isNotEmpty()) msgs else repository.getMessagesForChat(chat.id)
+                }
+            } catch (t: Throwable) {
+                android.util.Log.w("MainViewModel", "Error in observeMessages: ${t.message}")
+                _activeChatMessages.value = repository.getMessagesForChat(chat.id)
             }
         }
     }

@@ -6,26 +6,45 @@ service firebase.storage {
       return request.auth != null;
     }
     
-    // User Profile Photos and Covers
+    // 1. User Profile Photos and Covers (max 10MB)
     match /users/{userId}/{allPaths=**} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn() && request.auth.uid == userId
-                   && request.resource.size < 10 * 1024 * 1024 // Max 10MB
+      allow create, update: if isSignedIn()
+                   && request.auth.uid == userId
+                   && request.resource.size < 10 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
+      allow delete: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // Post Images and Videos
+    // 2. Post Media (Images and Videos up to 50MB)
     match /posts/{userId}/{allPaths=**} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn() && request.auth.uid == userId
-                   && request.resource.size < 50 * 1024 * 1024 // Max 50MB
+      allow create, update: if isSignedIn()
+                   && request.auth.uid == userId
+                   && request.resource.size < 50 * 1024 * 1024
                    && (request.resource.contentType.matches('image/.*') || request.resource.contentType.matches('video/.*'));
+      allow delete: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // Chat Attachments
+    // 3. Story Media (Images and Videos up to 30MB)
+    match /stories/{userId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+                   && request.auth.uid == userId
+                   && request.resource.size < 30 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*') || request.resource.contentType.matches('video/.*'));
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // 4. Chat Attachments (Images, Videos, and Audio up to 25MB)
     match /chats/{chatId}/{allPaths=**} {
-      allow read, write: if isSignedIn()
-                   && request.resource.size < 25 * 1024 * 1024; // Max 25MB
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn()
+                   && request.resource.size < 25 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*') || 
+                       request.resource.contentType.matches('video/.*') || 
+                       request.resource.contentType.matches('audio/.*'));
+      allow delete: if isSignedIn();
     }
   }
 }

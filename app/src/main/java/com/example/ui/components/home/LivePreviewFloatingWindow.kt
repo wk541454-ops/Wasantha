@@ -161,7 +161,7 @@ fun LivePreviewFloatingWindow(
                 .padding(8.dp)
         ) {
             Text(
-                text = "Wasantha K.",
+                text = "FriendHub Live",
                 color = Color.White,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,

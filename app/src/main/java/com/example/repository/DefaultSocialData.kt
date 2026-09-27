@@ -5,24 +5,24 @@ import com.example.model.*
 object DefaultSocialData {
 
     val currentUser = User(
-        id = "user_me",
-        name = "Wasantha Kumara",
-        username = "wasanthakumara",
-        avatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
-        coverUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80",
-        bio = "App Admin & System Owner 👑 | Kuttapitiya, Pelmadulla",
-        work = "App Admin & System Owner",
-        education = "Software Development & IT",
-        location = "Kuttapitiya, Pelmadulla",
-        hometown = "Kuttapitiya, Pelmadulla",
-        relationshipStatus = "Single",
-        email = "wk541454@gmail.com",
-        phone = "0719117815",
-        website = "https://friendhub.io",
-        isOnline = true,
-        isVerified = true,
-        followersCount = 5420,
-        followingCount = 412
+        id = "",
+        name = "",
+        username = "",
+        avatarUrl = "",
+        coverUrl = "",
+        bio = "",
+        work = "",
+        education = "",
+        location = "",
+        hometown = "",
+        relationshipStatus = "",
+        email = "",
+        phone = "",
+        website = "",
+        isOnline = false,
+        isVerified = false,
+        followersCount = 0,
+        followingCount = 0
     )
 
     val friends = listOf(
@@ -67,9 +67,9 @@ object DefaultSocialData {
     val posts = listOf(
         Post(
             id = "post_1",
-            userId = "user_me",
-            userName = "Wasantha Kumara",
-            userAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+            userId = "friendhub_team",
+            userName = "FriendHub Community",
+            userAvatar = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80",
             userVerified = true,
             timestamp = "Just now",
             content = "Welcome to FriendHub! 🚀 Connect with friends, share stories, make HD video calls, and explore Marketplace. Real-time Cloud sync is active!",
@@ -218,7 +218,7 @@ object DefaultSocialData {
                 senderId = "user_kasun",
                 senderName = "Kasun Perera",
                 senderAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
-                content = "Hey Wasantha! How is the new FriendHub build going?",
+                content = "Hey! How is your day going?",
                 timestamp = "10:38 AM",
                 isMe = false
             ),
@@ -226,9 +226,9 @@ object DefaultSocialData {
                 id = "m2",
                 chatId = "chat_kasun",
                 senderId = "user_me",
-                senderName = "Wasantha Kumara",
-                senderAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
-                content = "Working smoothly! Full real-time cloud sync is online.",
+                senderName = "Me",
+                senderAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=500&auto=format&fit=crop&q=80",
+                content = "Great! Connecting with friends on FriendHub.",
                 timestamp = "10:40 AM",
                 isMe = true
             ),

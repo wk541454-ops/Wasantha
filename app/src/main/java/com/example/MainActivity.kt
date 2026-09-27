@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -110,6 +111,24 @@ fun FriendHubApp(
         }
     }
 
+    // Real-time lifecycle observer for accurate Online/Last Seen presence
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            when (event) {
+                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> viewModel.onAppForeground()
+                androidx.lifecycle.Lifecycle.Event.ON_PAUSE,
+                androidx.lifecycle.Lifecycle.Event.ON_STOP -> viewModel.onAppBackground()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            viewModel.onAppBackground()
+        }
+    }
+
     val selectedTab by viewModel.selectedTab.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
 
@@ -178,6 +197,10 @@ fun FriendHubApp(
             )
         }
     } else {
+        androidx.activity.compose.BackHandler(enabled = selectedTab != 0) {
+            viewModel.selectTab(0)
+        }
+
         Box(modifier = Modifier.fillMaxSize()) {
             val activeBusinessContext by viewModel.activeBusinessContext.collectAsState()
             val unreadNotificationsCount by viewModel.unreadNotificationsCount.collectAsState()

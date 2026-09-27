@@ -2368,15 +2368,13 @@ fun AppSettingsModal(
 
                     HorizontalDivider(color = Color(0xFF334155), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
 
-                    Text(text = "නම (Owner Name): Wasantha Kumara", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "වේදිකාව (Platform): FriendHub Official Social Network", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "ලිපිනය (Location): Kuttapitiya, Pelmadulla", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "සංස්කරණය (Version): v1.0.0 (Production Release)", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "දුරකථන (Phone): 0719117815", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "පාරිභෝගික සහාය (Support): support@friendhub.app", color = Color(0xFF38BDF8), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "ඇප් ඊමේල් (App Email): friendhubfriendhub@gmail.com", color = Color(0xFF38BDF8), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(text = "පෞද්ගලික ඊමේල් (Private Email): wk541454@gmail.com", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "ආරක්ෂක ක්‍රමය (Security): Firebase Cloud Firestore & AES-256", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Box(

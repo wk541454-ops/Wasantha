@@ -272,6 +272,10 @@ fun MessagingScreen(
     var showMessengerSettings by remember { mutableStateOf(false) }
     var showCreateGroupDialog by remember { mutableStateOf(false) }
 
+    androidx.activity.compose.BackHandler(enabled = activeChat != null) {
+        viewModel.closeChat()
+    }
+
     if (activeChat != null) {
         ChatDetailView(
             chat = activeChat!!,

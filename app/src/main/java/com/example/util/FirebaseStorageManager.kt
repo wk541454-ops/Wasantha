@@ -110,4 +110,20 @@ object FirebaseStorageManager {
             Result.failure(e)
         }
     }
+
+    suspend fun deleteFile(urlOrPath: String): Result<Unit> {
+        val st = storage ?: return Result.failure(Exception("Firebase Storage not available"))
+        return try {
+            val ref = if (urlOrPath.startsWith("http://") || urlOrPath.startsWith("https://")) {
+                st.getReferenceFromUrl(urlOrPath)
+            } else {
+                st.reference.child(urlOrPath)
+            }
+            ref.delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Delete failed for $urlOrPath: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
 }
